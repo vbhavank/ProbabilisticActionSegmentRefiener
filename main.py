@@ -432,5 +432,5 @@ if __name__ == '__main__':
         label_dir=label_dir, result_dir=os.path.join(result_dir, naming), 
         log_freq=log_freq, log_train_results=log_train_results
     )
-    model_path = "./trained_models/GTEA-Trained-S1/release.model"
+    model_path = f"./trained_models/{naming}/release.model"
     trainer.test(test_test_dataset, mode="encoder", device='cuda', label_dir=label_dir, result_dir=result_dir, model_path=model_path)
