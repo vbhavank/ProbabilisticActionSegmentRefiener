@@ -414,8 +414,8 @@ if __name__ == '__main__':
         boundary_smooth=boundary_smooth
     )
     
-    train_train_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='train')
-    train_test_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='test')
+    # train_train_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='train')
+    # train_test_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='test')
     test_test_dataset = VideoFeatureDataset(test_data_dict, num_classes, mode='test')
 
     trainer = Trainer(dict(encoder_params), dict(decoder_params), dict(diffusion_params), 
