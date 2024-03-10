@@ -49,14 +49,14 @@ class Trainer:
 
         result_loss = []
 
-        if os.path.exists(result_dir):
-            if 'latest.pt' in os.listdir(result_dir):
-                if os.path.getsize(os.path.join(result_dir, 'latest.pt')) > 0:
-                    saved_state = torch.load(os.path.join(result_dir, 'latest.pt'))
-                    self.model.load_state_dict(saved_state['model'])
-                    optimizer.load_state_dict(saved_state['optimizer'])
-                    restore_epoch = saved_state['epoch']
-                    step = saved_state['step']
+        # if os.path.exists(result_dir):
+        #     if 'latest.pt' in os.listdir(result_dir):
+        #         if os.path.getsize(os.path.join(result_dir, 'latest.pt')) > 0:
+        #             saved_state = torch.load(os.path.join(result_dir, 'latest.pt'))
+        #             self.model.load_state_dict(saved_state['model'])
+        #             optimizer.load_state_dict(saved_state['optimizer'])
+        #             restore_epoch = saved_state['epoch']
+        #             step = saved_state['step']
 
         if class_weighting:
             class_weights = train_train_dataset.get_class_weights()
