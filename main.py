@@ -394,15 +394,15 @@ if __name__ == '__main__':
     train_video_list = [i.split('.')[0] for i in train_video_list]
     test_video_list = [i.split('.')[0] for i in test_video_list]
 
-    train_data_dict = get_data_dict(
-        feature_dir=feature_dir, 
-        label_dir=label_dir, 
-        video_list=train_video_list, 
-        event_list=event_list, 
-        sample_rate=sample_rate, 
-        temporal_aug=temporal_aug,
-        boundary_smooth=boundary_smooth
-    )
+    # train_data_dict = get_data_dict(
+    #     feature_dir=feature_dir, 
+    #     label_dir=label_dir, 
+    #     video_list=train_video_list, 
+    #     event_list=event_list, 
+    #     sample_rate=sample_rate, 
+    #     temporal_aug=temporal_aug,
+    #     boundary_smooth=boundary_smooth
+    # )
 
     test_data_dict = get_data_dict(
         feature_dir=feature_dir, 
