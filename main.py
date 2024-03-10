@@ -15,6 +15,7 @@ from model import ASDiffusionModel
 from tqdm import tqdm
 from utils import load_config_file, func_eval, set_random_seed, get_labels_start_end_time
 from utils import mode_filter
+import matplotlib.pyplot as plt
 
 
 class Trainer:
@@ -45,6 +46,8 @@ class Trainer:
 
         restore_epoch = -1
         step = 1
+
+        result_loss = []
 
         if os.path.exists(result_dir):
             if 'latest.pt' in os.listdir(result_dir):
@@ -127,6 +130,8 @@ class Trainer:
             epoch_running_loss /= len(train_train_dataset)
 
             print(f'Epoch {epoch} - Running Loss {epoch_running_loss}')
+
+            result_loss.append(epoch_running_loss)
         
             if result_dir:
 
@@ -180,6 +185,18 @@ class Trainer:
                         
         # if result_dir:
         #     logger.close()
+                            
+        plt.figure(figsize=(16,9))
+        epochs = np.arange(len(result_loss))
+        plt.plot(epochs, result_loss, label='Training Loss')
+        plt.title('Training Loss')
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.legend(loc='best')
+        plt.tight_layout()
+        plt.savefig(f"./training_loss.png", dpi=300)
+        plt.close()
+
 
 
     def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None):  
@@ -409,11 +426,11 @@ if __name__ == '__main__':
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
 
-    # trainer.train(train_train_dataset, train_test_dataset, test_test_dataset, 
-    #     loss_weights, class_weighting, soft_label,
-    #     num_epochs, batch_size, learning_rate, weight_decay,
-    #     label_dir=label_dir, result_dir=os.path.join(result_dir, naming), 
-    #     log_freq=log_freq, log_train_results=log_train_results
-    # )
+    trainer.train(train_train_dataset, train_test_dataset, test_test_dataset, 
+        loss_weights, class_weighting, soft_label,
+        num_epochs, batch_size, learning_rate, weight_decay,
+        label_dir=label_dir, result_dir=os.path.join(result_dir, naming), 
+        log_freq=log_freq, log_train_results=log_train_results
+    )
     model_path = "./trained_models/GTEA-Trained-S1/release.model"
     trainer.test(test_test_dataset, mode="encoder", device='cuda', label_dir=label_dir, result_dir=result_dir, model_path=model_path)
