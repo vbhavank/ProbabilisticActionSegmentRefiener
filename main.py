@@ -292,7 +292,7 @@ class Trainer:
                             output[starts[e]:mid] = trans[e-1]
                             output[mid:ends[e]] = trans[e+1]
                         # print(f"output: {output}")
-
+            print(f"final: {output}")
             label = label.squeeze(0).cpu().numpy()
 
             assert(output.shape == label.shape)
