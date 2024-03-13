@@ -270,7 +270,7 @@ class Trainer:
                 right_offset=right_offset, 
                 sample_rate=self.sample_rate
             )
-
+            print(f"restore seq: {output}")
             if self.postprocess['type'] == 'mode': # after restoring full sequence
                 output = mode_filter(output, self.postprocess['value'])
                 print(f"output mode: {output}")
