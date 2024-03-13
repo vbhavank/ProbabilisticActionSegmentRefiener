@@ -7,6 +7,8 @@ from scipy.stats import poisson, chi2
 import math
 import pdb
 from dataset import get_bound
+import sys
+import argparse
         
 def poisson_confidence_interval(k, alpha=0.05):
     lower = chi2.ppf(alpha / 2, 2 * k) / 2
@@ -105,69 +107,77 @@ def parse_line(line, filename, action_mapping):
     except ValueError: 
         return None
 
-    
-label_dir = '/nfs/hpc/dgx2-6/data/gtea/labels'
-prediction_dir = '/nfs/hpc/dgx2-6/data/gtea/prediction_print'
-mapping_file = '/nfs/hpc/dgx2-6/data/gtea/mapping.txt'
-action_mapping = {}
-num_action_mapping = {}
 
-with open(mapping_file, 'r') as f:
-    for line in f:
-        number, action = line.strip().split()
-        action_mapping[action] = int(number)
-        num_action_mapping[int(number)] = action
-        
-action_occurrences_train = []
-action_occurrences_test = []
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-for filename in os.listdir(label_dir):
-    if filename.endswith('.txt'):
-        filepath = os.path.join(label_dir, filename)
-        with open(filepath, 'r') as f:
-            for line in f:
-                parsed_line = parse_line(line, filename, action_mapping)
-                if parsed_line == None:
-                    continue
-                if not int(parsed_line[3]):
-                    action_occurrences_train.append(parsed_line[:3])
+    parser.add_argument('--root', type=str)
+    parser.add_argument('--device', type=int)
+    args = parser.parse_args()
 
+    label_dir = '/nfs/hpc/dgx2-6/data/gtea/labels'
+    prediction_dir = '/nfs/hpc/dgx2-6/data/gtea/prediction_print'
+    mapping_file = '/nfs/hpc/dgx2-6/data/gtea/mapping.txt'
+    action_mapping = {}
+    num_action_mapping = {}
 
-action_occurrences_test = []
-for filename in os.listdir(prediction_dir):
-    if filename.endswith('.txt'):
-        filepath = os.path.join(prediction_dir, filename)
-        with open(filepath, 'r') as f:
-            sequence = [action_mapping[line.strip()] for line in f if line.strip() in action_mapping]
-            actions = []
-            current_action = None
-            occurrence = 0
-            for action in sequence:
-                if action == current_action:
-                    occurrence += 1
-                else:
-                    if current_action is not None:
-                        actions.append((current_action, occurrence, filename))
-                    current_action = action
-                    occurrence = 1
-            if current_action is not None:
-                actions.append((current_action, occurrence, filename))
-            action_occurrences_test.extend(actions)
+    with open(mapping_file, 'r') as f:
+        for line in f:
+            number, action = line.strip().split()
+            action_mapping[action] = int(number)
+            num_action_mapping[int(number)] = action
             
-transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
-plot_transition_diagram(transition_probabilities, num_action_mapping)
-plot_duration_dist(average_occurrences)
+    action_occurrences_train = []
+    action_occurrences_test = []
 
-total_probabilities_test = []
-for i in range(len(action_occurrences_test) - 1):
-    action_a, duration_a, f_n = action_occurrences_test[i]
-    action_b, duration_b, f_n2 = action_occurrences_test[i + 1]
-    if f_n == f_n2:
-        total_probability = compute_total_probability(action_a, duration_a, action_b, duration_b, transition_probabilities, average_occurrences)
-        total_probabilities_test.append((total_probability, (action_a, action_b), (duration_a, duration_b), f_n2))
-sorted_total_probabilities_test = sorted(total_probabilities_test, key=lambda x: x[0])
+    for filename in os.listdir(label_dir):
+        if filename.endswith('.txt'):
+            filepath = os.path.join(label_dir, filename)
+            with open(filepath, 'r') as f:
+                for line in f:
+                    parsed_line = parse_line(line, filename, action_mapping)
+                    if parsed_line == None:
+                        continue
+                    if not int(parsed_line[3]):
+                        action_occurrences_train.append(parsed_line[:3])
 
-with open('sorted_transitions.txt', 'w') as file:
-    for probability, actions, durations, filn in sorted_total_probabilities_test:
-        line = f"Transition in {filn} from {num_action_mapping[actions[0]]} to {num_action_mapping[actions[1]]}, Durations: {durations}, Total Probability: {probability}\n"
-        file.write(line)
+
+    action_occurrences_test = []
+    for filename in os.listdir(prediction_dir):
+        if filename.endswith('.txt'):
+            filepath = os.path.join(prediction_dir, filename)
+            with open(filepath, 'r') as f:
+                sequence = [action_mapping[line.strip()] for line in f if line.strip() in action_mapping]
+                actions = []
+                current_action = None
+                occurrence = 0
+                for action in sequence:
+                    if action == current_action:
+                        occurrence += 1
+                    else:
+                        if current_action is not None:
+                            actions.append((current_action, occurrence, filename))
+                        current_action = action
+                        occurrence = 1
+                if current_action is not None:
+                    actions.append((current_action, occurrence, filename))
+                action_occurrences_test.extend(actions)
+                
+    transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
+    plot_transition_diagram(transition_probabilities, num_action_mapping)
+    plot_duration_dist(average_occurrences)
+
+    total_probabilities_test = []
+    for i in range(len(action_occurrences_test) - 1):
+        action_a, duration_a, f_n = action_occurrences_test[i]
+        action_b, duration_b, f_n2 = action_occurrences_test[i + 1]
+        if f_n == f_n2:
+            total_probability = compute_total_probability(action_a, duration_a, action_b, duration_b, transition_probabilities, average_occurrences)
+            total_probabilities_test.append((total_probability, (action_a, action_b), (duration_a, duration_b), f_n2))
+    sorted_total_probabilities_test = sorted(total_probabilities_test, key=lambda x: x[0])
+
+    with open('sorted_transitions.txt', 'w') as file:
+        for probability, actions, durations, filn in sorted_total_probabilities_test:
+            line = f"Transition in {filn} from {num_action_mapping[actions[0]]} to {num_action_mapping[actions[1]]}, Durations: {durations}, Total Probability: {probability}\n"
+            file.write(line)

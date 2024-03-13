@@ -228,6 +228,7 @@ class Trainer:
             if mode == 'encoder':
                 output = [self.model.encoder(feature[i].to(device)) 
                        for i in range(len(feature))] # output is a list of tuples
+                
                 output = [F.softmax(i, 1).cpu() for i in output]
                 left_offset = self.sample_rate // 2
                 right_offset = (self.sample_rate - 1) // 2
@@ -236,6 +237,7 @@ class Trainer:
                 output = [self.model.ddim_sample(feature[i].to(device), seed) 
                            for i in range(len(feature))] # output is a list of tuples
                 output = [i.cpu() for i in output]
+                print(f"out decoder agg: {output}")
                 left_offset = self.sample_rate // 2
                 right_offset = (self.sample_rate - 1) // 2
 
@@ -250,6 +252,7 @@ class Trainer:
             min_len = min([i.shape[2] for i in output])
             output = [i[:,:,:min_len] for i in output]
             output = torch.cat(output, 0)  # torch.Size([sample_rate, C, T])
+            print(f"out cat: {output}")
             output = output.mean(0).numpy()
 
             if self.postprocess['type'] == 'median': # before restoring full sequence
@@ -259,7 +262,7 @@ class Trainer:
                 output = smoothed_output / smoothed_output.sum(0, keepdims=True)
 
             output = np.argmax(output, 0)
-            # print(f"output argmax: {output}")
+            print(f"output argmax: {output}")
 
             output = restore_full_sequence(output, 
                 full_len=label.shape[-1], 
@@ -433,4 +436,4 @@ if __name__ == '__main__':
     #     log_freq=log_freq, log_train_results=log_train_results
     # )
     model_path = f"./trained_models/{naming}/release.model"
-    trainer.test(test_test_dataset, mode="encoder", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path)
+    trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path)
