@@ -15,6 +15,7 @@ from model import ASDiffusionModel
 from tqdm import tqdm
 from utils import load_config_file, func_eval, set_random_seed, get_labels_start_end_time
 from utils import mode_filter
+import matplotlib.pyplot as plt
 
 
 class Trainer:
@@ -46,14 +47,16 @@ class Trainer:
         restore_epoch = -1
         step = 1
 
-        if os.path.exists(result_dir):
-            if 'latest.pt' in os.listdir(result_dir):
-                if os.path.getsize(os.path.join(result_dir, 'latest.pt')) > 0:
-                    saved_state = torch.load(os.path.join(result_dir, 'latest.pt'))
-                    self.model.load_state_dict(saved_state['model'])
-                    optimizer.load_state_dict(saved_state['optimizer'])
-                    restore_epoch = saved_state['epoch']
-                    step = saved_state['step']
+        result_loss = []
+
+        # if os.path.exists(result_dir):
+        #     if 'latest.pt' in os.listdir(result_dir):
+        #         if os.path.getsize(os.path.join(result_dir, 'latest.pt')) > 0:
+        #             saved_state = torch.load(os.path.join(result_dir, 'latest.pt'))
+        #             self.model.load_state_dict(saved_state['model'])
+        #             optimizer.load_state_dict(saved_state['optimizer'])
+        #             restore_epoch = saved_state['epoch']
+        #             step = saved_state['step']
 
         if class_weighting:
             class_weights = train_train_dataset.get_class_weights()
@@ -127,6 +130,8 @@ class Trainer:
             epoch_running_loss /= len(train_train_dataset)
 
             print(f'Epoch {epoch} - Running Loss {epoch_running_loss}')
+
+            result_loss.append(epoch_running_loss)
         
             if result_dir:
 
@@ -180,6 +185,18 @@ class Trainer:
                         
         # if result_dir:
         #     logger.close()
+                            
+        plt.figure(figsize=(16,9))
+        epochs = np.arange(len(result_loss))
+        plt.plot(epochs, result_loss, label='Training Loss')
+        plt.title('Training Loss')
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.legend(loc='best')
+        plt.tight_layout()
+        plt.savefig(f"./training_loss.png", dpi=300)
+        plt.close()
+
 
 
     def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None):  
@@ -211,6 +228,7 @@ class Trainer:
             if mode == 'encoder':
                 output = [self.model.encoder(feature[i].to(device)) 
                        for i in range(len(feature))] # output is a list of tuples
+                
                 output = [F.softmax(i, 1).cpu() for i in output]
                 left_offset = self.sample_rate // 2
                 right_offset = (self.sample_rate - 1) // 2
@@ -219,6 +237,7 @@ class Trainer:
                 output = [self.model.ddim_sample(feature[i].to(device), seed) 
                            for i in range(len(feature))] # output is a list of tuples
                 output = [i.cpu() for i in output]
+                print(f"out decoder agg: {output}")
                 left_offset = self.sample_rate // 2
                 right_offset = (self.sample_rate - 1) // 2
 
@@ -233,6 +252,7 @@ class Trainer:
             min_len = min([i.shape[2] for i in output])
             output = [i[:,:,:min_len] for i in output]
             output = torch.cat(output, 0)  # torch.Size([sample_rate, C, T])
+            print(f"out cat: {output}")
             output = output.mean(0).numpy()
 
             if self.postprocess['type'] == 'median': # before restoring full sequence
@@ -242,7 +262,7 @@ class Trainer:
                 output = smoothed_output / smoothed_output.sum(0, keepdims=True)
 
             output = np.argmax(output, 0)
-            # print(f"output argmax: {output}")
+            print(f"output argmax: {output}")
 
             output = restore_full_sequence(output, 
                 full_len=label.shape[-1], 
@@ -250,7 +270,7 @@ class Trainer:
                 right_offset=right_offset, 
                 sample_rate=self.sample_rate
             )
-
+            print(f"restore seq: {output}")
             if self.postprocess['type'] == 'mode': # after restoring full sequence
                 output = mode_filter(output, self.postprocess['value'])
                 print(f"output mode: {output}")
@@ -272,7 +292,7 @@ class Trainer:
                             output[starts[e]:mid] = trans[e-1]
                             output[mid:ends[e]] = trans[e+1]
                         # print(f"output: {output}")
-
+            print(f"final: {output}")
             label = label.squeeze(0).cpu().numpy()
 
             assert(output.shape == label.shape)
@@ -377,15 +397,15 @@ if __name__ == '__main__':
     train_video_list = [i.split('.')[0] for i in train_video_list]
     test_video_list = [i.split('.')[0] for i in test_video_list]
 
-    train_data_dict = get_data_dict(
-        feature_dir=feature_dir, 
-        label_dir=label_dir, 
-        video_list=train_video_list, 
-        event_list=event_list, 
-        sample_rate=sample_rate, 
-        temporal_aug=temporal_aug,
-        boundary_smooth=boundary_smooth
-    )
+    # train_data_dict = get_data_dict(
+    #     feature_dir=feature_dir, 
+    #     label_dir=label_dir, 
+    #     video_list=train_video_list, 
+    #     event_list=event_list, 
+    #     sample_rate=sample_rate, 
+    #     temporal_aug=temporal_aug,
+    #     boundary_smooth=boundary_smooth
+    # )
 
     test_data_dict = get_data_dict(
         feature_dir=feature_dir, 
@@ -397,8 +417,8 @@ if __name__ == '__main__':
         boundary_smooth=boundary_smooth
     )
     
-    train_train_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='train')
-    train_test_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='test')
+    # train_train_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='train')
+    # train_test_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='test')
     test_test_dataset = VideoFeatureDataset(test_data_dict, num_classes, mode='test')
 
     trainer = Trainer(dict(encoder_params), dict(decoder_params), dict(diffusion_params), 
@@ -415,5 +435,5 @@ if __name__ == '__main__':
     #     label_dir=label_dir, result_dir=os.path.join(result_dir, naming), 
     #     log_freq=log_freq, log_train_results=log_train_results
     # )
-    model_path = "./trained_models/GTEA-Trained-S1/release.model"
-    trainer.test(test_test_dataset, mode="encoder", device='cuda', label_dir=label_dir, result_dir=result_dir, model_path=model_path)
+    model_path = f"./trained_models/{naming}/release.model"
+    trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path)
