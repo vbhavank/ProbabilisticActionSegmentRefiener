@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from scipy.stats import poisson, chi2
 import math
 import pdb
-from dataset import get_bound
 import sys
 import argparse
         
@@ -91,7 +90,7 @@ def compute_total_probability(action_a, duration_a, action_b, duration_b, transi
         lambda_b = average_occurrences.get(action_b, 0)
         duration_probability_a = poisson.pmf(duration_a, lambda_a) if lambda_a > 0 else 0
         duration_probability_b = poisson.pmf(duration_b, lambda_b) if lambda_b > 0 else 0
-        total_probability = transition_probability * duration_probability_a #* duration_probability_b
+        total_probability = transition_probability * duration_probability_a * duration_probability_b
         return total_probability
     return 0
 

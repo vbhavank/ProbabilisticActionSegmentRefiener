@@ -83,7 +83,7 @@ def compute_total_probability(action_a, duration_a, action_b, duration_b, transi
         lambda_b = average_occurrences.get(action_b, 0)
         duration_probability_a = poisson.pmf(duration_a, lambda_a) if lambda_a > 0 else 0
         duration_probability_b = poisson.pmf(duration_b, lambda_b) if lambda_b > 0 else 0
-        total_probability = transition_probability * duration_probability_a #* duration_probability_b
+        total_probability = transition_probability * duration_probability_a * duration_probability_b
         return total_probability
     return 0
 
@@ -147,7 +147,6 @@ if __name__ == '__main__':
             action_mapping[action] = int(number)
             num_action_mapping[int(number)] = action
             
-    # Load train and test splits
     train_filenames = load_splits(train_split_file)
     test_filenames = load_splits(test_split_file)
     train_filenames = [f  for f in load_splits(train_split_file)]
@@ -158,7 +157,7 @@ if __name__ == '__main__':
 
     transition_probabilities, average_durations = build_transition_matrix(action_sequences_train)
     # plot_transition_diagram(transition_probabilities, num_action_mapping)
-    
+
     action_occurrences_test = []
     for filename in os.listdir(prediction_dir):
         if filename.endswith('.txt'):
@@ -179,6 +178,7 @@ if __name__ == '__main__':
                 if current_action is not None:
                     actions.append((current_action, occurrence, filename))
                 action_occurrences_test.extend(actions)
+
     aggregated_probabilities = defaultdict(float)
 
     total_probabilities_test = []
@@ -186,7 +186,7 @@ if __name__ == '__main__':
         action_a, duration_a, f_n = action_occurrences_test[i]
         action_b, duration_b, f_n2 = action_occurrences_test[i + 1]
         if f_n == f_n2:
-            total_probability = compute_total_probability(action_a, duration_a, action_b, duration_b, transition_probabilities, average_occurrences)
+            total_probability = compute_total_probability(action_a, duration_a, action_b, duration_b, transition_probabilities, average_durations)
             total_probabilities_test.append((total_probability, (action_a, action_b), (duration_a, duration_b), f_n2))
             aggregated_probabilities[f_n2] += total_probability
 
