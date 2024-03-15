@@ -224,7 +224,7 @@ class Trainer:
             # feature:   [torch.Size([1, F, Sampled T])]
             # label:     torch.Size([1, Original T])
             # output: [torch.Size([1, C, Sampled T])]
-            print(f"boundary shape: {boundary.shape}\nboundary: {boundary}")
+            print(f"boundary: {boundary}")
             if mode == 'encoder':
                 output = [self.model.encoder(feature[i].to(device)) 
                        for i in range(len(feature))] # output is a list of tuples
