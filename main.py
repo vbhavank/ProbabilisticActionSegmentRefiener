@@ -266,7 +266,7 @@ class Trainer:
                 output = smoothed_output / smoothed_output.sum(0, keepdims=True)
 
             output = np.argmax(output, 0)
-            # print(f"output argmax: {output}")
+            print(f"output argmax: {output}")
 
             output = restore_full_sequence(output, 
                 full_len=label.shape[-1], 
@@ -295,6 +295,7 @@ class Trainer:
                             output[starts[e]:mid] = trans[e-1]
                             output[mid:ends[e]] = trans[e+1]
                         # print(f"output: {output}")
+            print(f"output: {output}")
             label = label.squeeze(0).cpu().numpy()
 
             assert(output.shape == label.shape)
