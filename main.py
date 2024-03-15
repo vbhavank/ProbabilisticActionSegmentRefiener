@@ -219,12 +219,12 @@ class Trainer:
             
         with torch.no_grad():
 
-            feature, label, _, video = test_dataset[video_idx]
+            feature, label, boundary, video = test_dataset[video_idx]
 
             # feature:   [torch.Size([1, F, Sampled T])]
             # label:     torch.Size([1, Original T])
             # output: [torch.Size([1, C, Sampled T])]
-
+            print(f"boundary shape: {boundary.shape}\nboundary: {boundary}")
             if mode == 'encoder':
                 output = [self.model.encoder(feature[i].to(device)) 
                        for i in range(len(feature))] # output is a list of tuples
