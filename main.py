@@ -237,7 +237,6 @@ class Trainer:
                 output = [self.model.ddim_sample(feature[i].to(device), seed) 
                            for i in range(len(feature))] # output is a list of tuples
                 output = [i.cpu() for i in output]
-                print(f"out decoder agg: {output}")
                 left_offset = self.sample_rate // 2
                 right_offset = (self.sample_rate - 1) // 2
 
@@ -278,12 +277,11 @@ class Trainer:
             # print(f"restore seq: {output}")
             if self.postprocess['type'] == 'mode': # after restoring full sequence
                 output = mode_filter(output, self.postprocess['value'])
-                print(f"output mode: {output}")
 
             if self.postprocess['type'] == 'purge':
 
                 trans, starts, ends = get_labels_start_end_time(output)
-                
+                print(f"trans: {trans}\nstars: {starts}\nends: {ends}")
                 for e in range(0, len(trans)):
                     duration = ends[e] - starts[e]
                     if duration <= self.postprocess['value']:
@@ -297,7 +295,6 @@ class Trainer:
                             output[starts[e]:mid] = trans[e-1]
                             output[mid:ends[e]] = trans[e+1]
                         # print(f"output: {output}")
-            print(f"final: {output}")
             label = label.squeeze(0).cpu().numpy()
 
             assert(output.shape == label.shape)
