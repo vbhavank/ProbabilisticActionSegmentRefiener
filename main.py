@@ -251,9 +251,14 @@ class Trainer:
 
             min_len = min([i.shape[2] for i in output])
             output = [i[:,:,:min_len] for i in output]
-            output = torch.cat(output, 0)  # torch.Size([sample_rate, C, T])
-            print(f"out cat: {output}")
-            output = output.mean(0).numpy()
+            # output = torch.cat(output, 0)  # torch.Size([sample_rate, C, T])
+            # output = output.mean(0).numpy()
+
+            output = torch.mean(torch.cat(output, 0), dim=0)  # torch.Size([sample_rate, C, T])
+            top2_scores = torch.topk(output, k=2, dim=0)[0]
+            top2_scores1= (top2_scores[0, :] - top2_scores[1, :]).numpy()
+            print(f"top2_scores1: {top2_scores1}")
+            output = output.numpy()
 
             if self.postprocess['type'] == 'median': # before restoring full sequence
                 smoothed_output = np.zeros_like(output)
@@ -262,7 +267,7 @@ class Trainer:
                 output = smoothed_output / smoothed_output.sum(0, keepdims=True)
 
             output = np.argmax(output, 0)
-            print(f"output argmax: {output}")
+            # print(f"output argmax: {output}")
 
             output = restore_full_sequence(output, 
                 full_len=label.shape[-1], 
@@ -270,7 +275,7 @@ class Trainer:
                 right_offset=right_offset, 
                 sample_rate=self.sample_rate
             )
-            print(f"restore seq: {output}")
+            # print(f"restore seq: {output}")
             if self.postprocess['type'] == 'mode': # after restoring full sequence
                 output = mode_filter(output, self.postprocess['value'])
                 print(f"output mode: {output}")
