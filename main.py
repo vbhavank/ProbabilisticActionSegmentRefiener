@@ -242,7 +242,7 @@ class Trainer:
         with torch.no_grad():
 
             feature, label, _, video = test_dataset[video_idx]
-            print(f"feature: {feature.shape}")
+            print(f"feature: {feature[0].shape}")
             # feature:   [torch.Size([1, F, Sampled T])]
             # label:     torch.Size([1, Original T])
             # output: [torch.Size([1, C, Sampled T])]
