@@ -222,6 +222,7 @@ class Trainer:
                 segment_uncertainty[segment_index] += top2_scores[i]
             elif segment_action != output[i]:
                 action_segments[segment_index][1] = i - 1
+                segment_uncertainty[segment_index] /= (action_segments[segment_index][1] - action_segments[segment_index][0] + 1)
                 segment_index += 1
                 segment_action = output[i]
                 action_segments[segment_index] = [i, -1]
@@ -331,7 +332,7 @@ class Trainer:
                         # print(f"output: {output}")
             label = label.squeeze(0).cpu().numpy()
             if most_uncertain_segments is None:
-                most_uncertain_segment = np.array(self.get_most_uncertain_segment(top2_scores1, output))
+                most_uncertain_segment = self.get_most_uncertain_segment(top2_scores1, output)
             else:
                 most_uncertain_segment = None
             assert(output.shape == label.shape)
