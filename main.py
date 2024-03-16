@@ -211,14 +211,14 @@ class Trainer:
             elif segment_action == output[i]:
                 segment_uncertainty[segment_index] += top2_scores[i]
             elif segment_action != output[i]:
-                print(f"segment index: {segment_index}, action_segment: {action_segments[segment_index]}")
+                
                 action_segments[segment_index][1] = i - 1
                 segment_index += 1
                 segment_action = output[i]
                 action_segments[segment_index] = [i, -1]
                 segment_uncertainty.append(top2_scores[i])
-                
-        most_uncertain_segment = np.argmax(np.array(segment_uncertainty))
+        print(f"action_segment: {action_segments}")     
+        most_uncertain_segment = np.argmin(np.array(segment_uncertainty))
         return action_segments[most_uncertain_segment]
 
 
