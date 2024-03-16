@@ -226,8 +226,7 @@ class Trainer:
                 segment_action = output[i]
                 action_segments[segment_index] = [i, -1]
                 segment_uncertainty.append(top2_scores[i])
-            
-        print(f"action_segment: {action_segments}")     
+                
         most_uncertain_segment = np.argmin(np.array(segment_uncertainty))
         return action_segments[most_uncertain_segment]
 
@@ -407,7 +406,7 @@ class Trainer:
         }
         if most_uncertain_segments is None:
             most_uncertain_segments = most_uncertain_segments_1
-        print(f"result: {result_dict}\nmostuncertain_segs: {most_uncertain_segments}")
+        print(f"\nresult: {result_dict}\n\nmostuncertain_segs: {most_uncertain_segments}")
         return result_dict, most_uncertain_segments
 
 
@@ -499,7 +498,6 @@ if __name__ == '__main__':
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
     most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
-    print(most_uncertain_segments)
     result_dict, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
     with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
