@@ -502,4 +502,4 @@ if __name__ == '__main__':
     print(most_uncertain_segments)
     result_dict, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
     with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
-        json.dump(result_dict, outfile)
+        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
