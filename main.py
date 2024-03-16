@@ -198,6 +198,27 @@ class Trainer:
         plt.close()
 
 
+    def get_most_uncertain_segment(self, top2_scores, output):
+        action_segments = {}
+        segment_action = -1
+        segment_uncertainty = []
+        segment_index = 0
+        for i in range(len(output)):
+            if i == 0:
+                segment_action = output[i]
+                segment_uncertainty.append(top2_scores[i])
+                action_segments[segment_index] = (i, -1)
+            elif segment_action == output[i]:
+                segment_uncertainty[segment_index] += top2_scores[i]
+            elif segment_action != output[i]:
+                action_segments[segment_index][1] = i - 1
+                segment_index += 1
+                segment_action = output[i]
+                segment_uncertainty[segment_index] += top2_scores[i]
+                
+        most_uncertain_segment = np.argmax(np.array(segment_uncertainty))
+        return action_segments[most_uncertain_segment]
+
 
     def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None):  
         
@@ -216,15 +237,15 @@ class Trainer:
             seed = video_idx
         else:
             seed = None
-            
+        
+
         with torch.no_grad():
 
-            feature, label, boundary, video = test_dataset[video_idx]
-
+            feature, label, _, video = test_dataset[video_idx]
+            print(f"feature: {feature.shape}")
             # feature:   [torch.Size([1, F, Sampled T])]
             # label:     torch.Size([1, Original T])
             # output: [torch.Size([1, C, Sampled T])]
-            print(f"boundary: {boundary}")
             if mode == 'encoder':
                 output = [self.model.encoder(feature[i].to(device)) 
                        for i in range(len(feature))] # output is a list of tuples
@@ -297,10 +318,10 @@ class Trainer:
                         # print(f"output: {output}")
             print(f"output: {output}")
             label = label.squeeze(0).cpu().numpy()
-
+            most_uncertain_segment = self.get_most_uncertain_segment(top2_scores1, output)
             assert(output.shape == label.shape)
             
-            return video, output, label
+            return video, output, label, most_uncertain_segment
 
     def print_preds(self, pred):
         curr_action = -1
@@ -324,16 +345,18 @@ class Trainer:
 
         if model_path:
             self.model.load_state_dict(torch.load(model_path))
+
+        most_uncertain_segments = []
         
         with torch.no_grad():
 
             for video_idx in tqdm(range(len(test_dataset))):
                 
-                video, pred, label = self.test_single_video(
+                video, pred, label, most_uncertain_segment = self.test_single_video(
                     video_idx, test_dataset, mode, device, model_path)
 
                 pred = [self.event_list[int(i)] for i in pred]
-                
+                most_uncertain_segments.append(most_uncertain_segment)
                 if not os.path.exists(os.path.join(result_dir, 'prediction')):
                     os.makedirs(os.path.join(result_dir, 'prediction'))
 
@@ -363,7 +386,7 @@ class Trainer:
             'F1@50': f1s[2]
         }
         print(result_dict)
-        return result_dict
+        return result_dict, most_uncertain_segments
 
 
 if __name__ == '__main__':
