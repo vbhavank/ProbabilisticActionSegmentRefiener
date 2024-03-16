@@ -215,6 +215,7 @@ class Trainer:
                 action_segments[segment_index][1] = i - 1
                 segment_index += 1
                 segment_action = output[i]
+                action_segments[segment_index] = [i, -1]
                 segment_uncertainty.append(top2_scores[i])
                 
         most_uncertain_segment = np.argmax(np.array(segment_uncertainty))
