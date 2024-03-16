@@ -261,7 +261,7 @@ class Trainer:
             # output: [torch.Size([1, C, Sampled T])]
             if most_uncertain_segments is not None:
                 frames = most_uncertain_segments[video_idx]
-                feature[:,:,frames[0]:frames[1]] = 0
+                feature[0][:,:,frames[0]:frames[1]] = 0
 
             if mode == 'encoder':
                 output = [self.model.encoder(feature[i].to(device)) 
