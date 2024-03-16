@@ -17,7 +17,13 @@ from utils import load_config_file, func_eval, set_random_seed, get_labels_start
 from utils import mode_filter
 import matplotlib.pyplot as plt
 import json
+from json import JSONEncoder
 
+class NumpyFloatEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.float32) or isinstance(obj, np.float64):
+            return str(obj)
+        return JSONEncoder.default(self, obj)
 
 class Trainer:
     def __init__(self, encoder_params, decoder_params, diffusion_params, 
@@ -490,7 +496,7 @@ if __name__ == '__main__':
         os.makedirs(result_matrices)
     
     with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
-        json.dump(result_dict, outfile)
+        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
     most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
     print(most_uncertain_segments)
