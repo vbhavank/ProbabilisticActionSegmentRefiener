@@ -207,7 +207,7 @@ class Trainer:
             if i == 0:
                 segment_action = output[i]
                 segment_uncertainty.append(top2_scores[i])
-                action_segments[segment_index] = (i, -1)
+                action_segments[segment_index] = [i, -1]
             elif segment_action == output[i]:
                 segment_uncertainty[segment_index] += top2_scores[i]
             elif segment_action != output[i]:
