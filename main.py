@@ -357,7 +357,7 @@ class Trainer:
             self.model.load_state_dict(torch.load(model_path))
 
         if most_uncertain_segments is None:
-            most_uncertain_segments = []
+            most_uncertain_segments_1 = []
         
         with torch.no_grad():
 
@@ -369,7 +369,7 @@ class Trainer:
                 pred = [self.event_list[int(i)] for i in pred]
 
                 if most_uncertain_segment is not None:
-                    most_uncertain_segments.append(most_uncertain_segment)
+                    most_uncertain_segments_1.append(most_uncertain_segment)
 
                 if not os.path.exists(os.path.join(result_dir, 'prediction')):
                     os.makedirs(os.path.join(result_dir, 'prediction'))
@@ -399,6 +399,8 @@ class Trainer:
             'F1@25': f1s[1],
             'F1@50': f1s[2]
         }
+        if most_uncertain_segments is None:
+            most_uncertain_segments = most_uncertain_segments_1
         print(f"result: {result_dict}\nmostuncertain_segs: {most_uncertain_segments}")
         return result_dict, most_uncertain_segments
 
