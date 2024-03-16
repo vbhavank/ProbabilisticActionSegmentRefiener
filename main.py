@@ -16,6 +16,7 @@ from tqdm import tqdm
 from utils import load_config_file, func_eval, set_random_seed, get_labels_start_end_time
 from utils import mode_filter
 import matplotlib.pyplot as plt
+import json
 
 
 class Trainer:
@@ -225,7 +226,7 @@ class Trainer:
         return action_segments[most_uncertain_segment]
 
 
-    def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None):  
+    def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_segments=None):  
         
         assert(test_dataset.mode == 'test')
         assert(mode in ['encoder', 'decoder-noagg', 'decoder-agg'])
@@ -243,14 +244,19 @@ class Trainer:
         else:
             seed = None
         
+        
 
         with torch.no_grad():
 
             feature, label, _, video = test_dataset[video_idx]
-            print(f"feature: {feature[0].shape}")
+
             # feature:   [torch.Size([1, F, Sampled T])]
             # label:     torch.Size([1, Original T])
             # output: [torch.Size([1, C, Sampled T])]
+            if most_uncertain_segments is not None:
+                frames = most_uncertain_segments[video_idx]
+                feature[:,:,frames[0]:frames[1]] = 0
+
             if mode == 'encoder':
                 output = [self.model.encoder(feature[i].to(device)) 
                        for i in range(len(feature))] # output is a list of tuples
@@ -282,7 +288,6 @@ class Trainer:
             output = torch.mean(torch.cat(output, 0), dim=0)  # torch.Size([sample_rate, C, T])
             top2_scores = torch.topk(output, k=2, dim=0)[0]
             top2_scores1= (top2_scores[0, :] - top2_scores[1, :]).numpy()
-            print(f"top2_scores1: {top2_scores1}")
             output = output.numpy()
 
             if self.postprocess['type'] == 'median': # before restoring full sequence
@@ -292,7 +297,6 @@ class Trainer:
                 output = smoothed_output / smoothed_output.sum(0, keepdims=True)
 
             output = np.argmax(output, 0)
-            print(f"output argmax: {output}")
 
             output = restore_full_sequence(output, 
                 full_len=label.shape[-1], 
@@ -307,7 +311,6 @@ class Trainer:
             if self.postprocess['type'] == 'purge':
 
                 trans, starts, ends = get_labels_start_end_time(output)
-                print(f"trans: {trans}\nstars: {starts}\nends: {ends}")
                 for e in range(0, len(trans)):
                     duration = ends[e] - starts[e]
                     if duration <= self.postprocess['value']:
@@ -321,9 +324,11 @@ class Trainer:
                             output[starts[e]:mid] = trans[e-1]
                             output[mid:ends[e]] = trans[e+1]
                         # print(f"output: {output}")
-            print(f"output: {output}")
             label = label.squeeze(0).cpu().numpy()
-            most_uncertain_segment = self.get_most_uncertain_segment(top2_scores1, output)
+            if most_uncertain_segments is None:
+                most_uncertain_segment = np.array(self.get_most_uncertain_segment(top2_scores1, output))
+            else:
+                most_uncertain_segment = None
             assert(output.shape == label.shape)
             
             return video, output, label, most_uncertain_segment
@@ -341,7 +346,7 @@ class Trainer:
         return print_pred.strip()
             
 
-    def test(self, test_dataset, mode, device, label_dir, result_dir=None, model_path=None):
+    def test(self, test_dataset, mode, device, label_dir, result_dir=None, model_path=None, most_uncertain_segments=None):
         
         assert(test_dataset.mode == 'test')
 
@@ -351,17 +356,21 @@ class Trainer:
         if model_path:
             self.model.load_state_dict(torch.load(model_path))
 
-        most_uncertain_segments = []
+        if most_uncertain_segments is None:
+            most_uncertain_segments = []
         
         with torch.no_grad():
 
             for video_idx in tqdm(range(len(test_dataset))):
                 
                 video, pred, label, most_uncertain_segment = self.test_single_video(
-                    video_idx, test_dataset, mode, device, model_path)
+                    video_idx, test_dataset, mode, device, model_path, most_uncertain_segments)
 
                 pred = [self.event_list[int(i)] for i in pred]
-                most_uncertain_segments.append(most_uncertain_segment)
+
+                if most_uncertain_segment is not None:
+                    most_uncertain_segments.append(most_uncertain_segment)
+
                 if not os.path.exists(os.path.join(result_dir, 'prediction')):
                     os.makedirs(os.path.join(result_dir, 'prediction'))
 
@@ -467,4 +476,21 @@ if __name__ == '__main__':
     #     log_freq=log_freq, log_train_results=log_train_results
     # )
     model_path = f"./trained_models/{naming}/release.model"
-    trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path)
+    result_dict, most_uncertain_segments = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path)
+    uncertain_segments_result = f"./uncertain_frames/{naming}"
+    if not os.path.exists(uncertain_segments_result):
+        os.makedirs(uncertain_segments_result)
+
+    np.save(f"{uncertain_segments_result}/most_uncertain_frames.npy", most_uncertain_segments)
+
+    result_matrices = f"./result_matrices/{naming}"
+    if not os.path.exists(result_matrices):
+        os.makedirs(result_matrices)
+    
+    with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
+        json.dump(result_dict, outfile)
+
+    most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
+    result_dict, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
+    with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
+        json.dump(result_dict, outfile)
