@@ -211,6 +211,7 @@ class Trainer:
             elif segment_action == output[i]:
                 segment_uncertainty[segment_index] += top2_scores[i]
             elif segment_action != output[i]:
+                print(f"segment index: {segment_index}, action_segment: {action_segments[segment_index]}")
                 action_segments[segment_index][1] = i - 1
                 segment_index += 1
                 segment_action = output[i]
