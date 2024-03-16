@@ -218,6 +218,7 @@ class Trainer:
             elif i == len(output) - 1:
                 action_segments[segment_index][1] = i
                 segment_uncertainty[segment_index] += top2_scores[i]
+                segment_uncertainty[segment_index] /= (action_segments[segment_index][1] - action_segments[segment_index][0] + 1)
             elif segment_action == output[i]:
                 segment_uncertainty[segment_index] += top2_scores[i]
             elif segment_action != output[i]:
