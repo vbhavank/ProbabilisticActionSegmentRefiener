@@ -387,7 +387,7 @@ class Trainer:
             'F1@25': f1s[1],
             'F1@50': f1s[2]
         }
-        print(result_dict)
+        print(f"result: {result_dict}\nmostuncertain_segs: {most_uncertain_segments}")
         return result_dict, most_uncertain_segments
 
 
