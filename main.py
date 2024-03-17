@@ -342,7 +342,7 @@ class Trainer:
                         # print(f"output: {output}")
             label = label.squeeze(0).cpu().numpy()
             if most_uncertain_segments is None:
-                most_uncertain_segment = None # self.get_most_uncertain_segment(top2_scores1, output)
+                most_uncertain_segment =  self.get_most_uncertain_segment(top2_scores1, output)
             else:
                 most_uncertain_segment = None
 
