@@ -210,9 +210,9 @@ class Trainer:
         segment_action = -1
         segment_uncertainty = []
         segment_index = 0
-        print(f"length output: {len(output)}\nlength top2_scores: {len(top2_scores)}")
+        # print(f"length output: {len(output)}\nlength top2_scores: {len(top2_scores)}")
         for i in range(len(output)):
-            print(f"i={i}")
+            # print(f"i={i}")
             if i == 0:
                 segment_action = output[i]
                 segment_uncertainty.append(top2_scores[i])
@@ -307,6 +307,11 @@ class Trainer:
             top2_scores1= (top2_scores[0, :] - top2_scores[1, :]).numpy()
             output = output.numpy()
 
+            if most_uncertain_segments is None:
+                most_uncertain_segment =  self.get_most_uncertain_segment(top2_scores1, output)
+            else:
+                most_uncertain_segment = None
+
             if self.postprocess['type'] == 'median': # before restoring full sequence
                 smoothed_output = np.zeros_like(output)
                 for c in range(output.shape[0]):
@@ -342,10 +347,7 @@ class Trainer:
                             output[mid:ends[e]] = trans[e+1]
                         # print(f"output: {output}")
             label = label.squeeze(0).cpu().numpy()
-            if most_uncertain_segments is None:
-                most_uncertain_segment =  self.get_most_uncertain_segment(top2_scores1, output)
-            else:
-                most_uncertain_segment = None
+            
 
             if mistaken_frames is None:
                 mistaken_frames = self.mistaken_segments(output, label)
