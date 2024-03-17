@@ -231,6 +231,9 @@ class Trainer:
                 
         most_uncertain_segment = np.argmin(np.array(segment_uncertainty))
         return action_segments[most_uncertain_segment]
+    
+    def mistaken_segments(self, output, ground_truth):
+        pass
 
 
     def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_segments=None):  
@@ -336,6 +339,9 @@ class Trainer:
                 most_uncertain_segment = self.get_most_uncertain_segment(top2_scores1, output)
             else:
                 most_uncertain_segment = None
+
+            mismatch = output != label
+            print(f"mismatch: {mismatch}")
             assert(output.shape == label.shape)
             
             return video, output, label, most_uncertain_segment
