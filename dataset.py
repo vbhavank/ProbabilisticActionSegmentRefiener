@@ -108,7 +108,7 @@ def get_boundary_seq(event_seq, boundary_smooth=None):
 
 
 def restore_full_sequence(x, full_len, left_offset, right_offset, sample_rate):
-        
+    print(f"x len: {len(x)}")
     frame_ticks = np.arange(left_offset, full_len-right_offset, sample_rate)
     print(f"frame_ticks: {frame_ticks}, length: {len(frame_ticks)}\n\nleft offset: {left_offset}, full len: {full_len}, right offset: {right_offset}, sample rate: {sample_rate}")
     full_ticks = np.arange(frame_ticks[0], frame_ticks[-1]+1, 1)
