@@ -210,6 +210,7 @@ class Trainer:
         segment_action = -1
         segment_uncertainty = []
         segment_index = 0
+        print(f"length output: {len(output)}")
         for i in range(len(output)):
             print(f"i={i}")
             if i == 0:
