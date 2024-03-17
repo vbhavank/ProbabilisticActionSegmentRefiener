@@ -341,7 +341,7 @@ class Trainer:
                 most_uncertain_segment = None
 
             mismatch = output != label
-            print(f"mismatch: {mismatch}")
+            print(f"mismatch: {output[mismatch]}")
             assert(output.shape == label.shape)
             
             return video, output, label, most_uncertain_segment
