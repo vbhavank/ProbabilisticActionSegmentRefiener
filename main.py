@@ -263,17 +263,16 @@ class Trainer:
         with torch.no_grad():
 
             feature, label, _, video = test_dataset[video_idx]
-            print(f"feature: {feature[0].shape}")
             # feature:   [torch.Size([1, F, Sampled T])]
             # label:     torch.Size([1, Original T])
             # output: [torch.Size([1, C, Sampled T])]
-            if most_uncertain_segments is not None:
-                frames = most_uncertain_segments[video_idx]
-                feature[0][:,:,frames[0]:frames[1]] = 0
+            # if most_uncertain_segments is not None:
+            #     frames = most_uncertain_segments[video_idx]
+            #     feature[0][:,:,frames[0]:frames[1]] = 0
             
-            if mistaken_frames is not None:
-                frames = mistaken_frames[video_idx]
-                feature[0][:,:,frames] = 0
+            # if mistaken_frames is not None:
+            #     frames = mistaken_frames[video_idx]
+            #     feature[0][:,:,frames] = 0
 
             if mode == 'encoder':
                 output = [self.model.encoder(feature[i].to(device)) 
@@ -284,7 +283,7 @@ class Trainer:
                 right_offset = (self.sample_rate - 1) // 2
 
             if mode == 'decoder-agg':
-                output = [self.model.ddim_sample(feature[i].to(device), seed) 
+                output = [self.model.ddim_sample(feature[i].to(device), seed, mistaken_frames=mistaken_frames) 
                            for i in range(len(feature))] # output is a list of tuples
                 output = [i.cpu() for i in output]
                 left_offset = self.sample_rate // 2
