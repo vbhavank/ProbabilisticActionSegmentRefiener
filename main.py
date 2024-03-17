@@ -233,7 +233,7 @@ class Trainer:
         return action_segments[most_uncertain_segment]
     
     def mistaken_segments(self, output, ground_truth):
-        frames = np.where(output != ground_truth)
+        frames = np.where(output != ground_truth)[0]
         return frames
 
 
@@ -267,6 +267,10 @@ class Trainer:
             if most_uncertain_segments is not None:
                 frames = most_uncertain_segments[video_idx]
                 feature[0][:,:,frames[0]:frames[1]] = 0
+            
+            if mistaken_frames is not None:
+                frames = mistaken_frames[video_idx]
+                feature[0][:,:,frames] = 0
 
             if mode == 'encoder':
                 output = [self.model.encoder(feature[i].to(device)) 
@@ -508,10 +512,6 @@ if __name__ == '__main__':
         os.makedirs(uncertain_segments_result)
     np.save(f"{uncertain_segments_result}/most_uncertain_frames.npy", most_uncertain_segments)
 
-    mistaken_frames_result = f"./mistaken_frames/{naming}"
-    if not os.path.exists(mistaken_frames_result):
-        os.makedirs(mistaken_frames_result)
-    np.save(f"{mistaken_frames_result}/mistaken_frames.npy", mistaken_frames)
 
 
     result_matrices = f"./result_matrices/{naming}"
@@ -526,7 +526,7 @@ if __name__ == '__main__':
     # with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
         
-    mistaken_frames = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
+    # mistaken_frames = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
     result_dict, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
     with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
