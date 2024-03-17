@@ -429,7 +429,7 @@ class Trainer:
             most_uncertain_segments = most_uncertain_segments_1
         if mistaken_frames is None:
             mistaken_frames = mistaken_frames_1
-        print(f"\n\nresult: {result_dict}\n\nmostuncertain_segs: {most_uncertain_segments}\n\nmistaken frames: {mistaken_frames}")
+        print(f"\n\nresult: {result_dict}")
         return result_dict, most_uncertain_segments, mistaken_frames
 
 
@@ -527,6 +527,6 @@ if __name__ == '__main__':
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
         
     # mistaken_frames = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
-    result_dict, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
+    result_dict, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
     with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
