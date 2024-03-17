@@ -110,9 +110,9 @@ def get_boundary_seq(event_seq, boundary_smooth=None):
 def restore_full_sequence(x, full_len, left_offset, right_offset, sample_rate):
         
     frame_ticks = np.arange(left_offset, full_len-right_offset, sample_rate)
-    print(f"frame_ticks: {frame_ticks}\n\nleft offset: {left_offset}, full len: {full_len}, right offset: {right_offset}, sample rate: {sample_rate}")
+    print(f"frame_ticks: {frame_ticks}, length: {len(frame_ticks)}\n\nleft offset: {left_offset}, full len: {full_len}, right offset: {right_offset}, sample rate: {sample_rate}")
     full_ticks = np.arange(frame_ticks[0], frame_ticks[-1]+1, 1)
-    print(f"\nfull ticks: {full_ticks}")
+    print(f"\nfull ticks: {full_ticks}, length: {len(full_ticks)}")
     interp_func = interp1d(frame_ticks, x, kind='nearest')
     
     assert(len(frame_ticks) == len(x)) # Rethink this
