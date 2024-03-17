@@ -319,8 +319,11 @@ class ASDiffusionModel(nn.Module):
             video_feats = self.ins_norm(video_feats)
 
         encoder_out, backbone_feats = self.encoder(video_feats, get_features=True)
+        print(f"backbone feats: {backbone_feats.shape}")
+        
         if mistaken_frames is not None:
-            backbone_feats[:,:,mistaken_frames] = 0
+            print(f"mistaken frames: {mistaken_frames}")
+            backbone_feats[:,:,mistaken_frames] = 0.0
         if seed is not None:
             random.seed(seed)
             torch.manual_seed(seed)
