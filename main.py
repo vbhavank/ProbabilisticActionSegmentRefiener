@@ -263,7 +263,7 @@ class Trainer:
         with torch.no_grad():
 
             feature, label, _, video = test_dataset[video_idx]
-            print(f"feature: {feature[0].shape}\nlabel: {label[0].shape}")
+            # print(f"feature: {feature[0].shape}\nlabel: {label[0].shape}")
             # feature:   [torch.Size([1, F, Sampled T])]
             # label:     torch.Size([1, Original T])
             # output: [torch.Size([1, C, Sampled T])]
@@ -356,7 +356,7 @@ class Trainer:
             else:
                 mistaken_frames = None
             assert(output.shape == label.shape)
-            print(f"output: {output.shape}")
+            # print(f"output: {output.shape}")
             return video, output, label, most_uncertain_segment, mistaken_frames
 
     def print_preds(self, pred):
