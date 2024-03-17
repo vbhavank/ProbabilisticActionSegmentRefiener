@@ -283,8 +283,12 @@ class Trainer:
                 right_offset = (self.sample_rate - 1) // 2
 
             if mode == 'decoder-agg':
-                output = [self.model.ddim_sample(feature[i].to(device), seed, mistaken_frames=mistaken_frames[video_idx]) 
-                           for i in range(len(feature))] # output is a list of tuples
+                if mistaken_frames is not None:
+                    output = [self.model.ddim_sample(feature[i].to(device), seed, mistaken_frames=mistaken_frames[video_idx]) 
+                            for i in range(len(feature))] # output is a list of tuples
+                else:
+                    output = [self.model.ddim_sample(feature[i].to(device), seed) 
+                            for i in range(len(feature))]
                 output = [i.cpu() for i in output]
                 left_offset = self.sample_rate // 2
                 right_offset = (self.sample_rate - 1) // 2
