@@ -322,7 +322,7 @@ class ASDiffusionModel(nn.Module):
         print(f"backbone feats: {backbone_feats.shape}")
         
         if mistaken_frames is not None:
-            print(f"mistaken frames: {mistaken_frames}")
+            print(f"mistaken frames ddim: {mistaken_frames}")
             backbone_feats[:,:,mistaken_frames] = 0.0
         if seed is not None:
             random.seed(seed)
