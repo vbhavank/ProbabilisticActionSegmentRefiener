@@ -211,7 +211,7 @@ class Trainer:
         segment_uncertainty = []
         segment_index = 0
         # print(f"length output: {len(output)}\nlength top2_scores: {len(top2_scores)}")
-        print(f"output: {output}")
+        # print(f"output: {output}")
         for i in range(len(output)):
             # print(f"i={i}")
             if i == 0:
@@ -263,7 +263,7 @@ class Trainer:
         with torch.no_grad():
 
             feature, label, _, video = test_dataset[video_idx]
-
+            print(f"feature: {feature.shape}\nlabel: {label.shape}")
             # feature:   [torch.Size([1, F, Sampled T])]
             # label:     torch.Size([1, Original T])
             # output: [torch.Size([1, C, Sampled T])]
@@ -321,7 +321,7 @@ class Trainer:
                 most_uncertain_segment =  self.get_most_uncertain_segment(top2_scores1, output)
             else:
                 most_uncertain_segment = None
-                
+
             output = restore_full_sequence(output, 
                 full_len=label.shape[-1], 
                 left_offset=left_offset, 
@@ -356,7 +356,7 @@ class Trainer:
             else:
                 mistaken_frames = None
             assert(output.shape == label.shape)
-            
+            print(f"output: {output.shape}")
             return video, output, label, most_uncertain_segment, mistaken_frames
 
     def print_preds(self, pred):
