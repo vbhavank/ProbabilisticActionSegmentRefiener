@@ -233,7 +233,9 @@ class Trainer:
         return action_segments[most_uncertain_segment]
     
     def mistaken_segments(self, output, ground_truth):
-        pass
+        mismatch = output != ground_truth
+        indices = np.where(np.all(mismatch))
+        print(f"indices: {indices}")
 
 
     def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_segments=None):  
@@ -340,8 +342,7 @@ class Trainer:
             else:
                 most_uncertain_segment = None
 
-            mismatch = output != label
-            print(f"mismatch: {output[mismatch]}")
+            self.mistaken_segments(output, label)
             assert(output.shape == label.shape)
             
             return video, output, label, most_uncertain_segment
