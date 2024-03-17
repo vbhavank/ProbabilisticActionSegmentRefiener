@@ -211,6 +211,7 @@ class Trainer:
         segment_uncertainty = []
         segment_index = 0
         # print(f"length output: {len(output)}\nlength top2_scores: {len(top2_scores)}")
+        print(f"output: {output}")
         for i in range(len(output)):
             # print(f"i={i}")
             if i == 0:
