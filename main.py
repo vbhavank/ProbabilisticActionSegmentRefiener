@@ -233,8 +233,9 @@ class Trainer:
         return action_segments[most_uncertain_segment]
     
     def mistaken_segments(self, output, ground_truth):
-        mismatch = output != ground_truth
-        indices = np.where(np.all(mismatch))
+        mismatch = 
+        print(f"mismatch: {mismatch}")
+        indices = np.where(np.all(output != ground_truth))
         print(f"indices: {indices}")
 
 
