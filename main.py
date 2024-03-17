@@ -236,7 +236,7 @@ class Trainer:
         mismatch = output != ground_truth
         print(f"mismatch: {mismatch}")
         indices = np.where(output != ground_truth)
-        print(f"indices: {indices}")
+        print(f"indices: {indices[0]}\nindex: {indices[0][0]}")
 
 
     def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_segments=None):  
