@@ -308,10 +308,7 @@ class Trainer:
             top2_scores1= (top2_scores[0, :] - top2_scores[1, :]).numpy()
             output = output.numpy()
 
-            if most_uncertain_segments is None:
-                most_uncertain_segment =  self.get_most_uncertain_segment(top2_scores1, output)
-            else:
-                most_uncertain_segment = None
+            
 
             if self.postprocess['type'] == 'median': # before restoring full sequence
                 smoothed_output = np.zeros_like(output)
@@ -320,7 +317,11 @@ class Trainer:
                 output = smoothed_output / smoothed_output.sum(0, keepdims=True)
 
             output = np.argmax(output, 0)
-
+            if most_uncertain_segments is None:
+                most_uncertain_segment =  self.get_most_uncertain_segment(top2_scores1, output)
+            else:
+                most_uncertain_segment = None
+                
             output = restore_full_sequence(output, 
                 full_len=label.shape[-1], 
                 left_offset=left_offset, 
