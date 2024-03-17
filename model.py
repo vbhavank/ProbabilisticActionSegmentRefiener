@@ -321,7 +321,7 @@ class ASDiffusionModel(nn.Module):
         encoder_out, backbone_feats = self.encoder(video_feats, get_features=True)
         
         if mistaken_frames is not None:
-            print(f"backbones: {backbone_feats.shape}\n\nmistakes: {mistaken_frames}")
+            # print(f"backbones: {backbone_feats.shape}\n\nmistakes: {mistaken_frames}")
             backbone_feats[:,:,mistaken_frames] = 0.0
 
         if seed is not None:
