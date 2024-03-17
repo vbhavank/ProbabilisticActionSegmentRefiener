@@ -283,8 +283,6 @@ class Trainer:
                 right_offset = (self.sample_rate - 1) // 2
 
             if mode == 'decoder-agg':
-                if mistaken_frames is not None:
-                    print(f"mistaken frames decoder-agg: {mistaken_frames}")
                 output = [self.model.ddim_sample(feature[i].to(device), seed, mistaken_frames=mistaken_frames) 
                            for i in range(len(feature))] # output is a list of tuples
                 output = [i.cpu() for i in output]
@@ -357,7 +355,6 @@ class Trainer:
             else:
                 mistaken_frames = None
             assert(output.shape == label.shape)
-            print(f"mistaken frames per test: {mistaken_frames}")
             return video, output, label, most_uncertain_segment, mistaken_frames
 
     def print_preds(self, pred):
@@ -533,7 +530,6 @@ if __name__ == '__main__':
     # with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
         
-    mistaken_frames = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
     result_dict, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
     with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
