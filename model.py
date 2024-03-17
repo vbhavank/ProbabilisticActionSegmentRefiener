@@ -313,13 +313,13 @@ class ASDiffusionModel(nn.Module):
 
 
     @torch.no_grad()
-    def ddim_sample(self, video_feats, seed=None):
+    def ddim_sample(self, video_feats, seed=None, mistaken_frames=None):
 
         if self.use_instance_norm:
             video_feats = self.ins_norm(video_feats)
 
         encoder_out, backbone_feats = self.encoder(video_feats, get_features=True)
-
+        print(f"backbone feats: {backbone_feats.shape}")
         if seed is not None:
             random.seed(seed)
             torch.manual_seed(seed)
