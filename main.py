@@ -326,6 +326,7 @@ class Trainer:
                 sample_rate=self.sample_rate
             )
             label1 = label[0][frame_ticks]
+            print(f"label1: {label1}")
             if mistaken_frames is None:
                 mistaken_frames = self.mistaken_segments(output, label1)
             else:
