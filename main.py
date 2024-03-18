@@ -292,7 +292,7 @@ class Trainer:
                     output = [self.model.ddim_sample(feature[i].to(device), seed, most_uncertain_segment=most_uncertain_frames[video_idx]) 
                             for i in range(len(feature))]
                 elif random_mask is not None:
-                    output = [self.model.ddim_sample(feature[i].to(device), seed, random_mask=random_mask) 
+                    output = [self.model.ddim_sample(feature[i].to(device), seed, random_mask=random_mask[video_idx]) 
                             for i in range(len(feature))]
                 else:
                     output = [self.model.ddim_sample(feature[i].to(device), seed) 
@@ -350,7 +350,7 @@ class Trainer:
 
             if random_mask is None:
                 acc = (output1 == label1).sum() / len(output1)
-                print(f"output1 len: {len(output1)}\nacc: {acc}")
+                # print(f"output1 len: {len(output1)}\nacc: {acc}")
                 random_mask = self.get_random_frames(len(output1), int(len(output1) * acc))
             else:
                 random_mask = None
