@@ -242,9 +242,14 @@ class Trainer:
     def get_k_most_uncertain_frames(self, top2_score, k):
         values, frames = torch.topk(top2_score, k=k, largest=False)
         return frames
+    
+    def get_random_frames(self, total_frames, k):
+        all_frames = np.arange(total_frames, dtype=np.int32)
+        frames = np.random.choice(all_frames, size=k, replace=False)
+        return frames
 
 
-    def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_frames=None, mistaken_frames=None):  
+    def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_frames=None, mistaken_frames=None, random_mask=None):  
         
         assert(test_dataset.mode == 'test')
         assert(mode in ['encoder', 'decoder-noagg', 'decoder-agg'])
@@ -285,6 +290,9 @@ class Trainer:
                             for i in range(len(feature))] # output is a list of tuples
                 elif most_uncertain_frames is not None:
                     output = [self.model.ddim_sample(feature[i].to(device), seed, most_uncertain_segment=most_uncertain_frames[video_idx]) 
+                            for i in range(len(feature))]
+                elif random_mask is not None:
+                    output = [self.model.ddim_sample(feature[i].to(device), seed, random_mask=random_mask) 
                             for i in range(len(feature))]
                 else:
                     output = [self.model.ddim_sample(feature[i].to(device), seed) 
@@ -339,6 +347,11 @@ class Trainer:
                 mistaken_frames = self.mistaken_segments(output1, label1)
             else:
                 mistaken_frames = None
+
+            if random_mask is None:
+                random_mask = self.get_random_frames(len(output1, int(len(output1) * acc)))
+            else:
+                random_mask = None
             # print(f"mistaken frames: {mistaken_frames}\n\nframe ticks: {frame_ticks}")
             # print(f"restore seq: {output}")
             if self.postprocess['type'] == 'mode': # after restoring full sequence
@@ -365,7 +378,7 @@ class Trainer:
             
             
             assert(output.shape == label.shape)
-            return video, output, label, most_uncertain_frames, mistaken_frames
+            return video, output, label, most_uncertain_frames, mistaken_frames, random_mask
 
     def print_preds(self, pred):
         curr_action = -1
@@ -380,7 +393,7 @@ class Trainer:
         return print_pred.strip()
             
 
-    def test(self, test_dataset, mode, device, label_dir, result_dir=None, model_path=None, most_uncertain_segments=None, mistaken_frames=None, actual_acc=None):
+    def test(self, test_dataset, mode, device, label_dir, result_dir=None, model_path=None, most_uncertain_segments=None, mistaken_frames=None, random_mask=False):
         
         assert(test_dataset.mode == 'test')
 
@@ -396,12 +409,15 @@ class Trainer:
         if mistaken_frames is None:
             mistaken_frames_1 = []
 
+        if random_mask is None:
+            random_mask_1 = []
+
         with torch.no_grad():
 
             for video_idx in tqdm(range(len(test_dataset))):
                 
-                video, pred, label, most_uncertain_segment, mistaken_frames_per_video = self.test_single_video(
-                    video_idx, test_dataset, mode, device, model_path, most_uncertain_segments, mistaken_frames)
+                video, pred, label, most_uncertain_segment, mistaken_frames_per_video, random_mask_per_video = self.test_single_video(
+                    video_idx, test_dataset, mode, device, model_path, most_uncertain_segments, mistaken_frames, random_mask)
 
                 pred = [self.event_list[int(i)] for i in pred]
 
@@ -410,6 +426,9 @@ class Trainer:
 
                 if mistaken_frames is None:
                     mistaken_frames_1.append(mistaken_frames_per_video)
+
+                if random_mask is None:
+                    random_mask_1.append(random_mask_per_video)
 
                 if not os.path.exists(os.path.join(result_dir, 'prediction')):
                     os.makedirs(os.path.join(result_dir, 'prediction'))
@@ -443,8 +462,10 @@ class Trainer:
             most_uncertain_segments = most_uncertain_segments_1
         if mistaken_frames is None:
             mistaken_frames = mistaken_frames_1
+        if random_mask is None:
+            random_mask = random_mask_1
         print(f"\nresult: {result_dict}")
-        return result_dict, most_uncertain_segments, mistaken_frames
+        return result_dict, most_uncertain_segments, mistaken_frames, random_mask
 
 
 if __name__ == '__main__':
@@ -521,7 +542,7 @@ if __name__ == '__main__':
     # )
     print(f"Without any mask:")
     model_path = f"./trained_models/{naming}/release.model"
-    result_dict, most_uncertain_segments, mistaken_frames = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path)
+    result_dict, most_uncertain_segments, mistaken_frames, random_frames = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path)
     uncertain_segments_result = f"./uncertain_frames/{naming}"
     if not os.path.exists(uncertain_segments_result):
         os.makedirs(uncertain_segments_result)
@@ -538,11 +559,16 @@ if __name__ == '__main__':
 
     print(f"\nwith most uncertain mask:")
     # most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
-    result_dict, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
-    with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
+    result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
+    with open(f"{result_matrices}/with_uncertain_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
         
     print(f"\nWith mismatch mask:")
-    result_dict, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
-    with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
+    result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
+    with open(f"{result_matrices}/with_mismatch_mask_metrices.json", "w") as outfile: 
+        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+
+    print(f"\nWith random mask:")
+    result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, random_mask=random_frames)
+    with open(f"{result_matrices}/with_random_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
