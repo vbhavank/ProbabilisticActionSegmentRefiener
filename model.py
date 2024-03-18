@@ -328,6 +328,7 @@ class ASDiffusionModel(nn.Module):
             backbone_feats[:,:,most_uncertain_segment] = 0.0
 
         if random_mask is not None:
+            print(f"random mask: {random_mask}")
             backbone_feats[:,:,random_mask] = 0.0
 
         if seed is not None:
