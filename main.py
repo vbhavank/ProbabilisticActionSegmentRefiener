@@ -526,7 +526,7 @@ if __name__ == '__main__':
 
     print(f"with most uncertain mask:")
     most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
-    result_dict, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
+    result_dict, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
     with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
         
