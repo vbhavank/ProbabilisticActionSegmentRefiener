@@ -350,7 +350,7 @@ class Trainer:
 
             if random_mask is None:
                 acc = (output1 == label1).sum() / len(output1)
-                print(f"output1 len: {len(output1)}")
+                print(f"output1 len: {len(output1)}\nacc: {acc}")
                 random_mask = self.get_random_frames(len(output1), int(len(output1) * acc))
             else:
                 random_mask = None
