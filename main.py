@@ -240,7 +240,7 @@ class Trainer:
         return frames
 
 
-    def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_segments=None, mistaken_frames=None):  
+    def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_segment=None, mistaken_frames=None):  
         
         assert(test_dataset.mode == 'test')
         assert(mode in ['encoder', 'decoder-noagg', 'decoder-agg'])
@@ -279,6 +279,9 @@ class Trainer:
                 if mistaken_frames is not None:
                     output = [self.model.ddim_sample(feature[i].to(device), seed, mistaken_frames=mistaken_frames[video_idx]) 
                             for i in range(len(feature))] # output is a list of tuples
+                elif most_uncertain_segments is not None:
+                    output = [self.model.ddim_sample(feature[i].to(device), seed, most_uncertain_segment=most_uncertain_segment[video_idx]) 
+                            for i in range(len(feature))]
                 else:
                     output = [self.model.ddim_sample(feature[i].to(device), seed) 
                             for i in range(len(feature))]
@@ -304,8 +307,6 @@ class Trainer:
             top2_scores1= (top2_scores[0, :] - top2_scores[1, :]).numpy()
             output = output.numpy()
 
-            
-
             if self.postprocess['type'] == 'median': # before restoring full sequence
                 smoothed_output = np.zeros_like(output)
                 for c in range(output.shape[0]):
@@ -313,17 +314,22 @@ class Trainer:
                 output = smoothed_output / smoothed_output.sum(0, keepdims=True)
 
             output = np.argmax(output, 0)
-            if most_uncertain_segments is None:
+            if most_uncertain_segment is None:
                 most_uncertain_segment =  self.get_most_uncertain_segment(top2_scores1, output)
             else:
                 most_uncertain_segment = None
 
-            output = restore_full_sequence(output, 
+            output, frame_ticks = restore_full_sequence(output, 
                 full_len=label.shape[-1], 
                 left_offset=left_offset, 
                 right_offset=right_offset, 
                 sample_rate=self.sample_rate
             )
+            label1 = label[0][frame_ticks]
+            if mistaken_frames is None:
+                mistaken_frames = self.mistaken_segments(output, label1)
+            else:
+                mistaken_frames = None
             # print(f"restore seq: {output}")
             if self.postprocess['type'] == 'mode': # after restoring full sequence
                 output = mode_filter(output, self.postprocess['value'])
@@ -346,11 +352,6 @@ class Trainer:
                         # print(f"output: {output}")
             label = label.squeeze(0).cpu().numpy()
             
-
-            if mistaken_frames is None:
-                mistaken_frames = self.mistaken_segments(output, label)
-            else:
-                mistaken_frames = None
             assert(output.shape == label.shape)
             return video, output, label, most_uncertain_segment, mistaken_frames
 
@@ -506,6 +507,7 @@ if __name__ == '__main__':
     #     label_dir=label_dir, result_dir=os.path.join(result_dir, naming), 
     #     log_freq=log_freq, log_train_results=log_train_results
     # )
+    print(f"Without any mask:")
     model_path = f"./trained_models/{naming}/release.model"
     result_dict, most_uncertain_segments, mistaken_frames = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path)
     uncertain_segments_result = f"./uncertain_frames/{naming}"
@@ -522,11 +524,13 @@ if __name__ == '__main__':
     with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
-    # most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
-    # result_dict, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
-    # with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
-    #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+    print(f"with most uncertain mask:")
+    most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
+    result_dict, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
+    with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
+        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
         
+    print(f"With mismatch mask:")
     result_dict, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
     with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
