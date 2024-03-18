@@ -326,12 +326,12 @@ class Trainer:
                 sample_rate=self.sample_rate
             )
             label1 = label.squeeze(0).cpu().numpy()[frame_ticks]
-            print(f"label1: {label1}")
+            # print(f"label1: {label1}")
             if mistaken_frames is None:
                 mistaken_frames = self.mistaken_segments(output, label1)
             else:
                 mistaken_frames = None
-            print(f"mistaken frames: {mistaken_frames}\n\nframe ticks: {frame_ticks}")
+            # print(f"mistaken frames: {mistaken_frames}\n\nframe ticks: {frame_ticks}")
             # print(f"restore seq: {output}")
             if self.postprocess['type'] == 'mode': # after restoring full sequence
                 output = mode_filter(output, self.postprocess['value'])
