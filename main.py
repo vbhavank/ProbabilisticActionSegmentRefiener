@@ -240,7 +240,7 @@ class Trainer:
         return frames
     
     def get_k_most_uncertain_frames(self, top2_score, k):
-        values, frames = torch.topk(top2_score, k=k)
+        values, frames = torch.topk(top2_score, k=k, largest=False)
         return frames
 
 
@@ -308,7 +308,7 @@ class Trainer:
 
             output = torch.mean(torch.cat(output, 0), dim=0)  # torch.Size([sample_rate, C, T])
             top2_scores = torch.topk(output, k=2, dim=0)[0]
-            top2_scores1= torch.exp(-(top2_scores[0, :] - top2_scores[1, :]))
+            top2_scores1= top2_scores[0, :] - top2_scores[1, :]
             output = output.numpy()
 
             if self.postprocess['type'] == 'median': # before restoring full sequence
