@@ -349,7 +349,7 @@ class Trainer:
                 mistaken_frames = None
 
             if random_mask is None:
-                random_mask = self.get_random_frames(len(output1, int(len(output1) * acc)))
+                random_mask = self.get_random_frames(len(output1), int(len(output1) * acc))
             else:
                 random_mask = None
             # print(f"mistaken frames: {mistaken_frames}\n\nframe ticks: {frame_ticks}")
