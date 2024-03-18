@@ -325,7 +325,7 @@ class ASDiffusionModel(nn.Module):
             backbone_feats[:,:,mistaken_frames] = 0.0
 
         if most_uncertain_segment is not None:
-            backbone_feats[:,:,most_uncertain_segment[0]:most_uncertain_segment[1]] = 0.0
+            backbone_feats[:,:,most_uncertain_segment] = 0.0
 
         if seed is not None:
             random.seed(seed)

@@ -238,9 +238,13 @@ class Trainer:
     def mistaken_segments(self, output, ground_truth):
         frames = np.where(output != ground_truth)[0]
         return frames
+    
+    def get_k_most_uncertain_frames(self, top2_score, k):
+        values, frames = torch.topk(top2_score, k=k)
+        return frames
 
 
-    def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_segment=None, mistaken_frames=None):  
+    def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_frames=None, mistaken_frames=None):  
         
         assert(test_dataset.mode == 'test')
         assert(mode in ['encoder', 'decoder-noagg', 'decoder-agg'])
@@ -304,7 +308,7 @@ class Trainer:
 
             output = torch.mean(torch.cat(output, 0), dim=0)  # torch.Size([sample_rate, C, T])
             top2_scores = torch.topk(output, k=2, dim=0)[0]
-            top2_scores1= (top2_scores[0, :] - top2_scores[1, :]).numpy()
+            top2_scores1= np.exp(-(top2_scores[0, :] - top2_scores[1, :]).numpy())
             output = output.numpy()
 
             if self.postprocess['type'] == 'median': # before restoring full sequence
@@ -314,11 +318,8 @@ class Trainer:
                 output = smoothed_output / smoothed_output.sum(0, keepdims=True)
 
             output = np.argmax(output, 0)
-            if most_uncertain_segment is None:
-                most_uncertain_segment =  self.get_most_uncertain_segment(top2_scores1, output)
-            else:
-                most_uncertain_segment = None
-
+            
+            output1 = output
             output, frame_ticks = restore_full_sequence(output, 
                 full_len=label.shape[-1], 
                 left_offset=left_offset, 
@@ -327,8 +328,15 @@ class Trainer:
             )
             label1 = label.squeeze(0).cpu().numpy()[frame_ticks]
             # print(f"label1: {label1}")
+
+            if most_uncertain_frames is None:
+                acc = (output1 == label1).sum() / len(output1)
+                most_uncertain_frames =  self.get_k_most_uncertain_frames(top2_scores1, int(len(top2_scores) * acc))
+            else:
+                most_uncertain_frames = None
+
             if mistaken_frames is None:
-                mistaken_frames = self.mistaken_segments(output, label1)
+                mistaken_frames = self.mistaken_segments(output1, label1)
             else:
                 mistaken_frames = None
             # print(f"mistaken frames: {mistaken_frames}\n\nframe ticks: {frame_ticks}")
@@ -353,9 +361,11 @@ class Trainer:
                             output[mid:ends[e]] = trans[e+1]
                         # print(f"output: {output}")
             label = label.squeeze(0).cpu().numpy()
+
+            
             
             assert(output.shape == label.shape)
-            return video, output, label, most_uncertain_segment, mistaken_frames
+            return video, output, label, most_uncertain_frames, mistaken_frames
 
     def print_preds(self, pred):
         curr_action = -1
@@ -370,7 +380,7 @@ class Trainer:
         return print_pred.strip()
             
 
-    def test(self, test_dataset, mode, device, label_dir, result_dir=None, model_path=None, most_uncertain_segments=None, mistaken_frames=None):
+    def test(self, test_dataset, mode, device, label_dir, result_dir=None, model_path=None, most_uncertain_segments=None, mistaken_frames=None, actual_acc=None):
         
         assert(test_dataset.mode == 'test')
 
@@ -515,7 +525,7 @@ if __name__ == '__main__':
     uncertain_segments_result = f"./uncertain_frames/{naming}"
     if not os.path.exists(uncertain_segments_result):
         os.makedirs(uncertain_segments_result)
-    np.save(f"{uncertain_segments_result}/most_uncertain_frames.npy", most_uncertain_segments)
+    # np.save(f"{uncertain_segments_result}/most_uncertain_frames.npy", most_uncertain_segments)
 
 
 
@@ -527,7 +537,7 @@ if __name__ == '__main__':
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
     print(f"\nwith most uncertain mask:")
-    most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
+    # most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
     result_dict, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
     with open(f"{result_matrices}/with_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
