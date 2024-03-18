@@ -325,7 +325,7 @@ class Trainer:
                 right_offset=right_offset, 
                 sample_rate=self.sample_rate
             )
-            label1 = label[0][frame_ticks]
+            label1 = label.squeeze(0).cpu().numpy()[frame_ticks]
             print(f"label1: {label1}")
             if mistaken_frames is None:
                 mistaken_frames = self.mistaken_segments(output, label1)
