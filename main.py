@@ -279,7 +279,7 @@ class Trainer:
                 if mistaken_frames is not None:
                     output = [self.model.ddim_sample(feature[i].to(device), seed, mistaken_frames=mistaken_frames[video_idx]) 
                             for i in range(len(feature))] # output is a list of tuples
-                elif most_uncertain_segments is not None:
+                elif most_uncertain_segment is not None:
                     output = [self.model.ddim_sample(feature[i].to(device), seed, most_uncertain_segment=most_uncertain_segment[video_idx]) 
                             for i in range(len(feature))]
                 else:
