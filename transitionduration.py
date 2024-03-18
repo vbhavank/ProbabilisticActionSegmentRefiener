@@ -172,43 +172,7 @@ def parse_line(line, filename, action_mapping):
 #     for probability, actions, durations, filn in sorted_total_probabilities_test:
 #         line = f"Transition in {filn} from {num_action_mapping[actions[0]]} to {num_action_mapping[actions[1]]}, Durations: {durations}, Total Probability: {probability}\n"
 #         file.write(line)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-    parser.add_argument('--root', type=str)
-    parser.add_argument('--device', type=int)
-    args = parser.parse_args()
-
-    label_dir = '/nfs/hpc/dgx2-6/data/gtea/labels'
-    prediction_dir = '/nfs/hpc/dgx2-6/data/gtea/prediction_print'
-    mapping_file = '/nfs/hpc/dgx2-6/data/gtea/mapping.txt'
-    action_mapping = {}
-    num_action_mapping = {}
-
-    with open(mapping_file, 'r') as f:
-        for line in f:
-            number, action = line.strip().split()
-            action_mapping[action] = int(number)
-            num_action_mapping[int(number)] = action
-            
-    action_occurrences_train = []
-    action_occurrences_test = []
-
-    for filename in os.listdir(label_dir):
-        if filename.endswith('.txt'):
-            filepath = os.path.join(label_dir, filename)
-            with open(filepath, 'r') as f:
-                for line in f:
-                    parsed_line = parse_line(line, filename, action_mapping)
-                    if parsed_line == None:
-                        continue
-                    if not int(parsed_line[3]):
-                        action_occurrences_train.append(parsed_line[:3])
-
-
+def get_test_action_occurences(prediction_dir, action_mapping):
     action_occurrences_test = []
     for filename in os.listdir(prediction_dir):
         if filename.endswith('.txt'):
@@ -229,10 +193,35 @@ if __name__ == '__main__':
                 if current_action is not None:
                     actions.append((current_action, occurrence, filename))
                 action_occurrences_test.extend(actions)
-                
-    transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
-    plot_transition_diagram(transition_probabilities, num_action_mapping)
-    plot_duration_dist(average_occurrences)
+    return action_occurrences_test
+
+def get_action_occurences_train(label_dir, action_mapping):
+    action_occurrences_train = []
+
+    for filename in os.listdir(label_dir):
+        if filename.endswith('.txt'):
+            filepath = os.path.join(label_dir, filename)
+            with open(filepath, 'r') as f:
+                for line in f:
+                    parsed_line = parse_line(line, filename, action_mapping)
+                    if parsed_line == None:
+                        continue
+                    if not int(parsed_line[3]):
+                        action_occurrences_train.append(parsed_line[:3])
+    return action_occurrences_train
+
+def get_action_mappings(mapping_file):
+    action_mapping = {}
+    num_action_mapping = {}
+
+    with open(mapping_file, 'r') as f:
+        for line in f:
+            number, action = line.strip().split()
+            action_mapping[action] = int(number)
+            num_action_mapping[int(number)] = action
+    return action_mapping, num_action_mapping
+
+def get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurences):
     aggregated_probabilities = defaultdict(float)
 
     total_probabilities_test = []
@@ -243,7 +232,50 @@ if __name__ == '__main__':
             total_probability = compute_total_probability(action_a, duration_a, action_b, duration_b, transition_probabilities, average_occurrences)
             total_probabilities_test.append((total_probability, (action_a, action_b), (duration_a, duration_b), f_n2))
             aggregated_probabilities[f_n2] += total_probability
+    return aggregated_probabilities, total_probabilities_test
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument('--root', type=str)
+    parser.add_argument('--device', type=int)
+    args = parser.parse_args()
+
+    label_dir = '/nfs/hpc/dgx2-6/data/gtea/labels'
+    prediction_dir = '/nfs/hpc/dgx2-6/data/gtea/prediction_print'
+    mapping_file = '/nfs/hpc/dgx2-6/data/gtea/mapping.txt'
+    # action_mapping = {}
+    # num_action_mapping = {}
+
+    # with open(mapping_file, 'r') as f:
+    #     for line in f:
+    #         number, action = line.strip().split()
+    #         action_mapping[action] = int(number)
+    #         num_action_mapping[int(number)] = action
+
+    action_mapping, num_action_mapping = get_action_mappings(mapping_file)
             
+    action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
+
+    action_occurrences_test = get_test_action_occurences(prediction_dir, action_mapping)
+                
+    transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
+    plot_transition_diagram(transition_probabilities, num_action_mapping)
+    plot_duration_dist(average_occurrences)
+    # aggregated_probabilities = defaultdict(float)
+
+    # total_probabilities_test = []
+    # for i in range(len(action_occurrences_test) - 1):
+    #     action_a, duration_a, f_n = action_occurrences_test[i]
+    #     action_b, duration_b, f_n2 = action_occurrences_test[i + 1]
+    #     if f_n == f_n2:
+    #         total_probability = compute_total_probability(action_a, duration_a, action_b, duration_b, transition_probabilities, average_occurrences)
+    #         total_probabilities_test.append((total_probability, (action_a, action_b), (duration_a, duration_b), f_n2))
+    #         aggregated_probabilities[f_n2] += total_probability
+            
+    aggregated_probabilities, total_probabilities_test = get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurrences)
+    
     sorted_total_probabilities_test = sorted(total_probabilities_test, key=lambda x: x[0])
     sorted_aggregated_probabilities = sorted(aggregated_probabilities.items(), key=lambda x: x[1])
 
