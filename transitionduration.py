@@ -242,9 +242,9 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=int)
     args = parser.parse_args()
 
-    label_dir = '/nfs/hpc/dgx2-6/data/gtea/labels'
-    prediction_dir = '/nfs/hpc/dgx2-6/data/gtea/prediction_print'
-    mapping_file = '/nfs/hpc/dgx2-6/data/gtea/mapping.txt'
+    label_dir = "./datasets/gtea/labels" # '/nfs/hpc/dgx2-6/data/gtea/labels'
+    prediction_dir = "./result/GTEA-Trained-S1/prediction_print" # '/nfs/hpc/dgx2-6/data/gtea/prediction_print'
+    mapping_file = "./datasets/gtea/mapping.txt" # '/nfs/hpc/dgx2-6/data/gtea/mapping.txt'
     # action_mapping = {}
     # num_action_mapping = {}
 
