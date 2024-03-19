@@ -175,6 +175,7 @@ def get_total_probabilities_breakfast(action_occurrences_test, transition_probab
             total_probability = compute_total_probability(action_a, duration_a, action_b, duration_b, transition_probabilities, average_durations)
             total_probabilities_test.append((total_probability, (action_a, action_b), (duration_a, duration_b), f_n2))
             aggregated_probabilities[f_n2] += total_probability
+    return aggregated_probabilities, total_probabilities_test
 
 def get_action_mappings_breakfast(mapping_file):
     action_mapping = {}
