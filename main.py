@@ -586,7 +586,7 @@ if __name__ == '__main__':
     if not os.path.exists(result_matrices):
         os.makedirs(result_matrices)
     
-    if naming.contains('GTEA'):
+    if 'GTEA' in naming:
         label_dir = "./datasets/gtea/labels"
         prediction_dir = f"./result/{naming}/prediction_print"
         mapping_file = "./datasets/gtea/mapping.txt"
