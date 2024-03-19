@@ -497,7 +497,14 @@ def get_segments(pred_file, mapping_file):
 
 
 def get_most_uncertain_segment_PGM(naming, segment_index):
-    pass
+   if 'GTEA' in naming:
+        label_dir = "./datasets/gtea/labels"
+        prediction_dir = f"./result/{naming}/prediction_print"
+        mapping_file = "./datasets/gtea/mapping.txt"
+
+        for pred_file in os.listdir(prediction_dir):
+            get_segments(f"{prediction_dir}/{pred_file}", mapping_file)
+            exit()
 
 
 if __name__ == '__main__':
@@ -586,13 +593,9 @@ if __name__ == '__main__':
     if not os.path.exists(result_matrices):
         os.makedirs(result_matrices)
     
-    if 'GTEA' in naming:
-        label_dir = "./datasets/gtea/labels"
-        prediction_dir = f"./result/{naming}/prediction_print"
-        mapping_file = "./datasets/gtea/mapping.txt"
+    
 
-        get_segments(f"{prediction_dir}/{naming}.txt", mapping_file)
-
+ 
     # with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
