@@ -20,6 +20,8 @@ import json
 from json import JSONEncoder
 from transitionduration import get_action_mappings, get_action_occurences_train, get_test_action_occurences, build_transition_matrix, get_total_probabilities
 from transitiondurationBreakfast import get_action_mappings_breakfast, load_splits_breakfast, load_action_sequences_breakfast, build_transition_matrix_breakfast, action_occurrences_from_predictions_breakfast, get_total_probabilities_breakfast
+from transitiondurationSalads import get_action_mappings_salads, load_splits_salads, load_action_sequences_salads, build_transition_matrix_salads, get_action_occurrences_test_salads, get_aggregated_probabilities_salads
+
 class NumpyFloatEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.float32) or isinstance(obj, np.float64):
@@ -489,7 +491,9 @@ def get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train):
         action_occurrences_test = action_occurrences_from_predictions_breakfast(prediction_dir, action_mapping)
         aggregated_probabilities, _ = get_total_probabilities_breakfast(action_occurrences_test, transition_probabilities, average_durations)
     elif '50salads' in naming:
-        pass
+        transition_probabilities, average_durations = build_transition_matrix_salads(action_occurrences_train)
+        action_occurrences_test = get_action_occurrences_test_salads(prediction_dir, action_mapping)
+        aggregated_probabilities, _ = get_aggregated_probabilities_salads(action_occurrences_test, transition_probabilities, average_durations)
     return aggregated_probabilities
 
 
@@ -532,7 +536,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
         action_mapping, num_action_mapping = get_action_mappings(mapping_file)
         # print(f"actions: {action_mapping}")
         action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
-        # print(f"action occurs train: {action_occurrences_train}")
+
     elif "Breakfast" in naming:
         label_dir = './datasets/breakfast/groundTruth'
         mapping_file = './datasets/breakfast/mapping.txt'
@@ -542,8 +546,18 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
         # test_filenames = load_splits_breakfast(test_split_file)
         train_filenames = [f  for f in load_splits_breakfast(train_split_file)]
         # test_filenames = [f  for f in load_splits_breakfast(test_split_file)]
-        action_mapping, num_action_mapping = get_action_mappings(mapping_file)
+        action_mapping, num_action_mapping = get_action_mappings_breakfast(mapping_file)
         action_occurrences_train = load_action_sequences_breakfast(train_filenames, label_dir, action_mapping)
+    
+    elif "50salads" in naming:
+        label_dir = './datasets/50salads/groundTruth'
+        mapping_file = './datasets/50salads/mapping.txt'
+        train_split_file = './datasets/50salads/splits/train.split1.bundle'
+
+        train_filenames = load_splits_salads(train_split_file)
+        train_filenames = [f  for f in load_splits_salads(train_split_file)]
+
+        action_occurrences_train = load_action_sequences_salads(train_filenames, label_dir, action_mapping)
     else:
         action_mapping = None
         action_occurrences_train = None
