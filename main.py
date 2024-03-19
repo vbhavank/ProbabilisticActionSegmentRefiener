@@ -651,7 +651,7 @@ if __name__ == '__main__':
         os.makedirs(result_matrices)
     
     
-    get_most_uncertain_segment_PGM(naming, f"{result_dir}/{naming}/predicted_print", trainer, test_test_dataset, model_path, device='cuda')
+    get_most_uncertain_segment_PGM(naming, f"{result_dir}/{naming}/prediction_print", trainer, test_test_dataset, model_path, device='cuda')
  
     # with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
