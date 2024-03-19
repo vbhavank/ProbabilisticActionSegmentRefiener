@@ -296,7 +296,7 @@ class Trainer:
                     output = [self.model.ddim_sample(feature[i].to(device), seed, random_mask=random_mask[video_idx]) 
                             for i in range(len(feature))]
                 elif seq_segment_mask is not None:
-                    output = [self.model.ddim_sample(feature[i].to(device), seed, seq_segment_mask=seq_segment_mask) 
+                    output = [self.model.ddim_sample(feature[i].to(device), seed, seq_segment_mask=seq_segment_mask[video]) 
                             for i in range(len(feature))]
                 else:
                     output = [self.model.ddim_sample(feature[i].to(device), seed) 
@@ -399,7 +399,7 @@ class Trainer:
         return print_pred.strip()
             
 
-    def test(self, test_dataset, mode, device, label_dir, result_dir=None, model_path=None, most_uncertain_segments=None, mistaken_frames=None, random_mask=None, seq_segment_mask=None):
+    def test(self, test_dataset, mode, device, label_dir, result_dir=None, model_path=None, most_uncertain_segments=None, mistaken_frames=None, random_mask=None, video_most_uncertain_segment_map=None):
         
         assert(test_dataset.mode == 'test')
 
@@ -423,7 +423,7 @@ class Trainer:
             for video_idx in tqdm(range(len(test_dataset))):
                 
                 video, pred, label, most_uncertain_segment, mistaken_frames_per_video, random_mask_per_video = self.test_single_video(
-                    video_idx, test_dataset, mode, device, model_path, most_uncertain_segments, mistaken_frames, random_mask, seq_segment_mask)
+                    video_idx, test_dataset, mode, device, model_path, most_uncertain_segments, mistaken_frames, random_mask, video_most_uncertain_segment_map)
 
                 pred = [self.event_list[int(i)] for i in pred]
 
@@ -515,58 +515,60 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
     if model_path:
         trainer.model.load_state_dict(torch.load(model_path))
 
+    prediction_dir = f"./result/PGM/{naming}/prediction_print"
+    
     if 'GTEA' in naming:
         label_dir = "./datasets/gtea/labels"
-        prediction_dir = f"./result/PGM/{naming}/prediction_print"
+        
         mapping_file = "./datasets/gtea/mapping.txt"
-        segments = {}
-        for pred_file in os.listdir(previous_pred_dir):
-            sequence_segments = get_segments(f"{previous_pred_dir}/{pred_file}", mapping_file)
-            video_name = pred_file.split('.')[0]
-            segments[video_name] = sequence_segments
-        print(segments)
         action_mapping, num_action_mapping = get_action_mappings(mapping_file)
         # print(f"actions: {action_mapping}")
         action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
         # print(f"action occurs train: {action_occurrences_train}")
+    else:
+        action_mapping = None
+        action_occurrences_train = None
 
-        model_path = f"./trained_models/{naming}/release.model"
+    segments = {}
+    for pred_file in os.listdir(previous_pred_dir):
+        sequence_segments = get_segments(f"{previous_pred_dir}/{pred_file}", mapping_file)
+        video_name = pred_file.split('.')[0]
+        segments[video_name] = sequence_segments
 
-        
-        video_most_uncertain_segment_map = {}
+    video_most_uncertain_segment_map = {}
 
-        with torch.no_grad():
-            for video_idx in range(len(test_dataset)):
-                _, _, _, video = test_dataset[video_idx]
-                probs = 9999999.0
-                most_uncertain_segment_index = None
-                for segment_idx in segments[video].keys():
-                    video, pred, label, _, _, _ = trainer.test_single_video(
-                    video_idx, test_dataset, "decoder-agg", device, model_path, None, None, None, seq_segment_mask=segments[video][segment_idx])
+    with torch.no_grad():
+        for video_idx in range(len(test_dataset)):
+            _, _, _, video = test_dataset[video_idx]
+            probs = 9999999.0
+            most_uncertain_segment_index = None
+            for segment_idx in segments[video].keys():
+                video, pred, label, _, _, _ = trainer.test_single_video(
+                video_idx, test_dataset, "decoder-agg", device, model_path, None, None, None, seq_segment_mask=segments[video][segment_idx])
 
-                    pred = [trainer.event_list[int(i)] for i in pred]
-                    if not os.path.exists(prediction_dir):
-                        os.makedirs(prediction_dir)
-                    print_pred = trainer.print_preds(pred)
-                    file_name = os.path.join(prediction_dir, f'{video}.txt')
-                    file_ptr = open(file_name, 'w')
-                    file_ptr.write('### Frame level recognition: ###\n')
-                    file_ptr.write(print_pred)
-                    file_ptr.close()
-
-                    aggregated_probabilities = get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train)
-                    print(f"segment {segment_idx} aggregated: {aggregated_probabilities}")
-                    if probs > aggregated_probabilities[f"{video}.txt"]:
-                        probs = aggregated_probabilities[f"{video}.txt"]
-                        most_uncertain_segment_index = segment_idx
-                video_most_uncertain_segment_map[video] = segments[video][most_uncertain_segment_index]
-
+                pred = [trainer.event_list[int(i)] for i in pred]
+                if not os.path.exists(prediction_dir):
+                    os.makedirs(prediction_dir)
+                print_pred = trainer.print_preds(pred)
                 file_name = os.path.join(prediction_dir, f'{video}.txt')
-                if os.path.exists(file_name):
-                    os.remove(file_name)
-                print(f"video uncertain segment map: {video_most_uncertain_segment_map}")
-                exit()
+                file_ptr = open(file_name, 'w')
+                file_ptr.write('### Frame level recognition: ###\n')
+                file_ptr.write(print_pred)
+                file_ptr.close()
+
+                aggregated_probabilities = get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train)
+                print(f"segment {segment_idx} aggregated: {aggregated_probabilities}")
+                if probs > aggregated_probabilities[f"{video}.txt"]:
+                    probs = aggregated_probabilities[f"{video}.txt"]
+                    most_uncertain_segment_index = segment_idx
+            video_most_uncertain_segment_map[video] = segments[video][most_uncertain_segment_index]
+
+            file_name = os.path.join(prediction_dir, f'{video}.txt')
+            if os.path.exists(file_name):
+                os.remove(file_name)
+        print(f"video uncertain segment map: {video_most_uncertain_segment_map}")
                 
+    return video_most_uncertain_segment_map            
             # accs = []
             # 
             # for segment_idx in sequence_segments.keys():
@@ -664,8 +666,9 @@ if __name__ == '__main__':
         os.makedirs(result_matrices)
     
     
-    get_most_uncertain_segment_PGM(naming, f"{result_dir}/{naming}/prediction_print", trainer, test_test_dataset, model_path, device='cuda')
+    video_most_uncertain_segment_map = get_most_uncertain_segment_PGM(naming, f"{result_dir}/{naming}/prediction_print", trainer, test_test_dataset, model_path, device='cuda')
  
+    result_dict, most_uncertain_segments, mistaken_frames, random_frames = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, video_most_uncertain_segment_map=video_most_uncertain_segment_map)
     # with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
