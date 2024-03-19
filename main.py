@@ -556,7 +556,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
 
         train_filenames = load_splits_salads(train_split_file)
         train_filenames = [f  for f in load_splits_salads(train_split_file)]
-
+        action_mapping, num_action_mapping = get_action_mappings_salads(mapping_file)
         action_occurrences_train = load_action_sequences_salads(train_filenames, label_dir, action_mapping)
     else:
         action_mapping = None
