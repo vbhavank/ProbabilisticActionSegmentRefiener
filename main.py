@@ -490,11 +490,23 @@ def get_uncertain_segment_PGM(naming):
 
 def get_segments(pred_file, mapping_file):
     action_mapping, _ = get_action_mappings(mapping_file)
-    print(action_mapping)
+    sequence_segments = {}
     with open(pred_file, 'r') as f:
         # print(f"pred_file: {pred_file}")
         sequence = [action_mapping[line.strip()] for line in f if line.strip() in action_mapping.keys()]
-        print(f"sequence: {sequence}")
+        segment_index = 0
+        seq = -1
+        for i in range(len(sequence)):
+            if i == 0:
+                seq = sequence[i]
+                sequence_segments[0] = [seq]
+            elif seq == sequence[i]:
+                sequence_segments[segment_index].append(sequence[i])
+            elif seq != sequence[i]:
+                segment_index += 1
+                sequence_segments[segment_index] = [sequence[i]]
+                seq = sequence[i]
+    return sequence_segments
 
 
 
@@ -505,7 +517,8 @@ def get_most_uncertain_segment_PGM(naming):
         mapping_file = "./datasets/gtea/mapping.txt"
 
         for pred_file in os.listdir(prediction_dir):
-            get_segments(f"{prediction_dir}/{pred_file}", mapping_file)
+            sequence_segments = get_segments(f"{prediction_dir}/{pred_file}", mapping_file)
+            print(f"segments: {sequence_segments}")
             exit()
 
 
