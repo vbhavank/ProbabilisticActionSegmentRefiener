@@ -232,9 +232,9 @@ def get_total_probabilities(action_occurrences_test, transition_probabilities, a
             total_probability = compute_total_probability(action_a, duration_a, action_b, duration_b, transition_probabilities, average_occurrences)
             total_probabilities_test.append((total_probability, (action_a, action_b), (duration_a, duration_b), f_n2))
             # aggregated_probabilities[f_n2] *= total_probability
-            aggregated_probabilities[f_n2] += np.log(total_probability)
-    for f_n2 in aggregated_probabilities.keys():
-        aggregated_probabilities[f_n2] = np.exp(aggregated_probabilities[f_n2])
+            aggregated_probabilities[f_n2] *= total_probability
+    # for f_n2 in aggregated_probabilities.keys():
+    #     aggregated_probabilities[f_n2] = np.exp(aggregated_probabilities[f_n2])
     return aggregated_probabilities, total_probabilities_test
 
 if __name__ == '__main__':
