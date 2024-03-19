@@ -219,6 +219,7 @@ if __name__ == '__main__':
     test_filenames = [f  for f in load_splits_breakfast(test_split_file)]
 
     action_sequences_train = load_action_sequences_breakfast(train_filenames, label_dir, action_mapping)
+    print(f"action_sq_train: {action_sequences_train}")
     # action_sequences_test = load_action_sequences(test_filenames, label_dir, action_mapping)
 
     transition_probabilities, average_durations = build_transition_matrix_breakfast(action_sequences_train)
