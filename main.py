@@ -528,7 +528,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
         mapping_file = "./datasets/gtea/mapping.txt"
         segments = {}
         for pred_file in os.listdir(previous_pred_dir):
-            sequence_segments = get_segments(f"{prediction_dir}/{pred_file}", mapping_file)
+            sequence_segments = get_segments(f"{previous_pred_dir}/{pred_file}", mapping_file)
             print(f"segments: {sequence_segments}")
             video_name = pred_file.split('.')[0]
             segments[video_name] = sequence_segments
