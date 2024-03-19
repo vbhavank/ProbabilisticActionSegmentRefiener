@@ -474,7 +474,7 @@ class Trainer:
         return result_dict, most_uncertain_segments, mistaken_frames, random_mask
 
 def get_uncertain_segment_PGM(naming):
-    prediction_dir = f"./result/{naming}/PGM/prediction_print"
+    prediction_dir = f"./result/PGM/{naming}/prediction_print"
 
     if 'GTEA' in naming:
         label_dir = "./datasets/gtea/labels"
@@ -524,7 +524,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
 
     if 'GTEA' in naming:
         label_dir = "./datasets/gtea/labels"
-        prediction_dir = f"./result/{naming}/PGM/prediction_print"
+        prediction_dir = f"./result/PGM/{naming}/prediction_print"
         mapping_file = "./datasets/gtea/mapping.txt"
         segments = {}
         for pred_file in os.listdir(previous_pred_dir):
