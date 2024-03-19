@@ -225,7 +225,7 @@ def do_log(prob):
     if prob == 0.0:
         return 0
     else:
-        return np.log(prob)
+        return np.abs(np.log(prob))
     
 def get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurrences):
     aggregated_probabilities = defaultdict(float)

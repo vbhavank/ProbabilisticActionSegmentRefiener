@@ -539,7 +539,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
     video_most_uncertain_segment_map = {}
 
     with torch.no_grad():
-        for video_idx in range(len(test_dataset)):
+        for video_idx in tqdm(range(len(test_dataset))):
             _, _, _, video = test_dataset[video_idx]
             probs = 9999999.0
             most_uncertain_segment_index = None
