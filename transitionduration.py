@@ -221,7 +221,7 @@ def get_action_mappings(mapping_file):
             num_action_mapping[int(number)] = action
     return action_mapping, num_action_mapping
 
-def get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurences):
+def get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurrences):
     aggregated_probabilities = defaultdict(float)
 
     total_probabilities_test = []
