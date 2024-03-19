@@ -478,11 +478,18 @@ def get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train):
     prediction_dir = f"./result/PGM/{naming}/prediction_print"
     aggregated_probabilities = None
 
-    action_occurrences_test = get_test_action_occurences(prediction_dir, action_mapping)
-    # print(f"action_occurs test: {action_occurrences_test}")
-    transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
-    # print(f"transition probs: {transition_probabilities}\naverage occurs: {average_occurrences}")
-    aggregated_probabilities, total_probabilities_test = get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurrences)
+    if 'GTEA' in naming:
+        action_occurrences_test = get_test_action_occurences(prediction_dir, action_mapping)
+        # print(f"action_occurs test: {action_occurrences_test}")
+        transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
+        # print(f"transition probs: {transition_probabilities}\naverage occurs: {average_occurrences}")
+        aggregated_probabilities, _ = get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurrences)
+    elif 'Breakfast' in naming:
+        transition_probabilities, average_durations = build_transition_matrix_breakfast(action_occurrences_train)
+        action_occurrences_test = action_occurrences_from_predictions_breakfast(prediction_dir, action_mapping)
+        aggregated_probabilities, _ = get_total_probabilities_breakfast(action_occurrences_test, transition_probabilities, average_durations)
+    elif '50salads' in naming:
+        pass
     return aggregated_probabilities
 
 
@@ -527,16 +534,16 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
         action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
         # print(f"action occurs train: {action_occurrences_train}")
     elif "Breakfast" in naming:
-        label_dir = '/nfs/hpc/dgx2-6/data/breakfast/groundTruth'
-        mapping_file = '/nfs/hpc/dgx2-6/data/breakfast/mapping.txt'
-        train_split_file = '/nfs/hpc/dgx2-6/data/breakfast/splits/train.split1.bundle'
-        test_split_file = '/nfs/hpc/dgx2-6/data/breakfast/splits/test.split1.bundle'
-        train_filenames = load_splits(train_split_file)
-        test_filenames = load_splits(test_split_file)
-        train_filenames = [f  for f in load_splits(train_split_file)]
-        test_filenames = [f  for f in load_splits(test_split_file)]
+        label_dir = './datasets/breakfast/groundTruth'
+        mapping_file = './datasets/breakfast/mapping.txt'
+        train_split_file = './datasets/breakfast/splits/train.split1.bundle'
+        # test_split_file = '/nfs/hpc/dgx2-6/data/breakfast/splits/test.split1.bundle'
+        train_filenames = load_splits_breakfast(train_split_file)
+        # test_filenames = load_splits_breakfast(test_split_file)
+        train_filenames = [f  for f in load_splits_breakfast(train_split_file)]
+        # test_filenames = [f  for f in load_splits_breakfast(test_split_file)]
         action_mapping, num_action_mapping = get_action_mappings(mapping_file)
-        action_sequences_train = load_action_sequences(train_filenames, label_dir, action_mapping)
+        action_occurrences_train = load_action_sequences_breakfast(train_filenames, label_dir, action_mapping)
     else:
         action_mapping = None
         action_occurrences_train = None
