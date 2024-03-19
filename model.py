@@ -313,7 +313,7 @@ class ASDiffusionModel(nn.Module):
 
 
     @torch.no_grad()
-    def ddim_sample(self, video_feats, seed=None, mistaken_frames=None, most_uncertain_segment=None, random_mask=None):
+    def ddim_sample(self, video_feats, seed=None, mistaken_frames=None, most_uncertain_segment=None, random_mask=None, seq_segmet_mask=None):
 
         if self.use_instance_norm:
             video_feats = self.ins_norm(video_feats)
@@ -329,6 +329,9 @@ class ASDiffusionModel(nn.Module):
 
         if random_mask is not None:
             backbone_feats[:,:,random_mask] = 0.0
+
+        if seq_segmet_mask is not None:
+            backbone_feats[:,:,seq_segmet_mask] = 0.0
 
         if seed is not None:
             random.seed(seed)

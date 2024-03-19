@@ -250,7 +250,7 @@ class Trainer:
         return frames
 
 
-    def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_frames=None, mistaken_frames=None, random_mask=None):  
+    def test_single_video(self, video_idx, test_dataset, mode, device, model_path=None, most_uncertain_frames=None, mistaken_frames=None, random_mask=None, seq_segment_mask=None):  
         
         assert(test_dataset.mode == 'test')
         assert(mode in ['encoder', 'decoder-noagg', 'decoder-agg'])
@@ -294,6 +294,9 @@ class Trainer:
                             for i in range(len(feature))]
                 elif random_mask is not None:
                     output = [self.model.ddim_sample(feature[i].to(device), seed, random_mask=random_mask[video_idx]) 
+                            for i in range(len(feature))]
+                elif seq_segment_mask is not None:
+                    output = [self.model.ddim_sample(feature[i].to(device), seed, seq_segment_mask=seq_segment_mask) 
                             for i in range(len(feature))]
                 else:
                     output = [self.model.ddim_sample(feature[i].to(device), seed) 
@@ -396,7 +399,7 @@ class Trainer:
         return print_pred.strip()
             
 
-    def test(self, test_dataset, mode, device, label_dir, result_dir=None, model_path=None, most_uncertain_segments=None, mistaken_frames=None, random_mask=None):
+    def test(self, test_dataset, mode, device, label_dir, result_dir=None, model_path=None, most_uncertain_segments=None, mistaken_frames=None, random_mask=None, seq_segment_mask=None):
         
         assert(test_dataset.mode == 'test')
 
@@ -420,7 +423,7 @@ class Trainer:
             for video_idx in tqdm(range(len(test_dataset))):
                 
                 video, pred, label, most_uncertain_segment, mistaken_frames_per_video, random_mask_per_video = self.test_single_video(
-                    video_idx, test_dataset, mode, device, model_path, most_uncertain_segments, mistaken_frames, random_mask)
+                    video_idx, test_dataset, mode, device, model_path, most_uncertain_segments, mistaken_frames, random_mask, seq_segment_mask)
 
                 pred = [self.event_list[int(i)] for i in pred]
 
@@ -494,7 +497,6 @@ def get_segments(pred_file, mapping_file):
     with open(pred_file, 'r') as f:
         # print(f"pred_file: {pred_file}")
         sequence = [action_mapping[line.strip()] for line in f if line.strip() in action_mapping.keys()]
-        print(f"len: {len(sequence)}")
         segment_index = 0
         seq = -1
         for i in range(len(sequence)):
@@ -520,7 +522,11 @@ def get_most_uncertain_segment_PGM(naming):
         for pred_file in os.listdir(prediction_dir):
             sequence_segments = get_segments(f"{prediction_dir}/{pred_file}", mapping_file)
             print(f"segments: {sequence_segments}")
-            exit()
+            accs = []
+            model_path = f"./trained_models/{naming}/release.model"
+            for segment_idx in sequence_segments.keys():
+                result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, seq_segment_mask=sequence_segments[segment_idx])
+
 
 
 if __name__ == '__main__':
