@@ -475,7 +475,7 @@ class Trainer:
 
 def get_uncertain_segment_PGM(naming):
     prediction_dir = f"./result/PGM/{naming}/prediction_print"
-
+    aggregated_probabilities = None
     if 'GTEA' in naming:
         label_dir = "./datasets/gtea/labels"
         mapping_file = "./datasets/gtea/mapping.txt"
@@ -489,7 +489,7 @@ def get_uncertain_segment_PGM(naming):
         transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
 
         aggregated_probabilities, total_probabilities_test = get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurrences)
-        return aggregated_probabilities
+    return aggregated_probabilities
 
 
 def get_segments(pred_file, mapping_file):
@@ -529,7 +529,6 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
         segments = {}
         for pred_file in os.listdir(previous_pred_dir):
             sequence_segments = get_segments(f"{previous_pred_dir}/{pred_file}", mapping_file)
-            print(f"segments: {sequence_segments}")
             video_name = pred_file.split('.')[0]
             segments[video_name] = sequence_segments
 
