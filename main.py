@@ -499,12 +499,12 @@ def get_segments(pred_file, mapping_file):
         for i in range(len(sequence)):
             if i == 0:
                 seq = sequence[i]
-                sequence_segments[0] = [seq]
+                sequence_segments[0] = [i]
             elif seq == sequence[i]:
-                sequence_segments[segment_index].append(sequence[i])
+                sequence_segments[segment_index].append(i)
             elif seq != sequence[i]:
                 segment_index += 1
-                sequence_segments[segment_index] = [sequence[i]]
+                sequence_segments[segment_index] = [i]
                 seq = sequence[i]
     return sequence_segments
 
