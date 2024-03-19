@@ -174,7 +174,6 @@ def parse_line(line, filename, action_mapping):
 #         file.write(line)
 def get_test_action_occurences(prediction_dir, action_mapping):
     action_occurrences_test = []
-    print(f"pred list: {os.listdir(prediction_dir)}")
     for filename in os.listdir(prediction_dir):
         if filename.endswith('.txt'):
             filepath = os.path.join(prediction_dir, filename)

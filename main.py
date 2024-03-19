@@ -476,19 +476,12 @@ class Trainer:
 def get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train):
     prediction_dir = f"./result/PGM/{naming}/prediction_print"
     aggregated_probabilities = None
-    if 'GTEA' in naming:
-        label_dir = "./datasets/gtea/labels"
-        mapping_file = "./datasets/gtea/mapping.txt"
 
-        # action_mapping, num_action_mapping = get_action_mappings(mapping_file)
-        # print(f"actions: {action_mapping}")
-        # action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
-        # print(f"action occurs: {action_occurrences_train}")
-        action_occurrences_test = get_test_action_occurences(prediction_dir, action_mapping)
-        print(f"action_occurs test: {action_occurrences_test}")
-        transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
-        print(f"transition probs: {transition_probabilities}\naverage occurs: {average_occurrences}")
-        aggregated_probabilities, total_probabilities_test = get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurrences)
+    action_occurrences_test = get_test_action_occurences(prediction_dir, action_mapping)
+    # print(f"action_occurs test: {action_occurrences_test}")
+    transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
+    # print(f"transition probs: {transition_probabilities}\naverage occurs: {average_occurrences}")
+    aggregated_probabilities, total_probabilities_test = get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurrences)
     return aggregated_probabilities
 
 
@@ -533,9 +526,9 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
             segments[video_name] = sequence_segments
         print(segments)
         action_mapping, num_action_mapping = get_action_mappings(mapping_file)
-        print(f"actions: {action_mapping}")
+        # print(f"actions: {action_mapping}")
         action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
-        print(f"action occurs train: {action_occurrences_train}")
+        # print(f"action occurs train: {action_occurrences_train}")
 
         model_path = f"./trained_models/{naming}/release.model"
 
@@ -546,6 +539,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
                 video, pred, label, _, _, _ = trainer.test_single_video(
                 video_idx, test_dataset, "decoder-agg", device, model_path, None, None, None, seq_segment_mask=segments[video][segment_idx])
 
+                pred = [trainer.event_list[int(i)] for i in pred]
                 if not os.path.exists(prediction_dir):
                     os.makedirs(prediction_dir)
                 print_pred = trainer.print_preds(pred)
