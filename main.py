@@ -296,7 +296,7 @@ class Trainer:
                     output = [self.model.ddim_sample(feature[i].to(device), seed, random_mask=random_mask[video_idx]) 
                             for i in range(len(feature))]
                 elif seq_segment_mask is not None:
-                    output = [self.model.ddim_sample(feature[i].to(device), seed, seq_segment_mask=seq_segment_mask[video]) 
+                    output = [self.model.ddim_sample(feature[i].to(device), seed, seq_segment_mask=seq_segment_mask) 
                             for i in range(len(feature))]
                 else:
                     output = [self.model.ddim_sample(feature[i].to(device), seed) 
@@ -421,9 +421,10 @@ class Trainer:
         with torch.no_grad():
 
             for video_idx in tqdm(range(len(test_dataset))):
-                
+                _, _, _, video = test_dataset[video_idx]
+
                 video, pred, label, most_uncertain_segment, mistaken_frames_per_video, random_mask_per_video = self.test_single_video(
-                    video_idx, test_dataset, mode, device, model_path, most_uncertain_segments, mistaken_frames, random_mask, video_most_uncertain_segment_map)
+                    video_idx, test_dataset, mode, device, model_path, most_uncertain_segments, mistaken_frames, random_mask, video_most_uncertain_segment_map[video])
 
                 pred = [self.event_list[int(i)] for i in pred]
 
