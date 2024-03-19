@@ -18,6 +18,7 @@ from utils import mode_filter
 import matplotlib.pyplot as plt
 import json
 from json import JSONEncoder
+from transitionduration import get_action_mappings, get_action_occurences_train, get_test_action_occurences, build_transition_matrix, get_total_probabilities
 
 class NumpyFloatEncoder(JSONEncoder):
     def default(self, obj):
@@ -469,6 +470,35 @@ class Trainer:
         print(f"\nresult: {result_dict}")
         return result_dict, most_uncertain_segments, mistaken_frames, random_mask
 
+def get_uncertain_segment_PGM(naming):
+    if naming.contains('GTEA'):
+        label_dir = "./datasets/gtea/labels"
+        prediction_dir = f"./result/{naming}/prediction_print"
+        mapping_file = "./datasets/gtea/mapping.txt"
+
+        action_mapping, num_action_mapping = get_action_mappings(mapping_file)
+            
+        action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
+
+        action_occurrences_test = get_test_action_occurences(prediction_dir, action_mapping)
+                    
+        transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
+
+        aggregated_probabilities, total_probabilities_test = get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurrences)
+        return aggregated_probabilities[f"{naming}.txt"]
+
+
+def get_segments(pred_file, mapping_file):
+    action_mapping = get_action_mappings(mapping_file)
+    with open(pred_file, 'r') as f:
+        sequence = [action_mapping[line.strip()] for line in f if line.strip() in action_mapping]
+        print(f"sequence: {sequence}")
+
+
+
+def get_most_uncertain_segment_PGM(naming, segment_index):
+    pass
+
 
 if __name__ == '__main__':
 
@@ -556,21 +586,31 @@ if __name__ == '__main__':
     if not os.path.exists(result_matrices):
         os.makedirs(result_matrices)
     
-    with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
-        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+    if naming.contains('GTEA'):
+        label_dir = "./datasets/gtea/labels"
+        prediction_dir = f"./result/{naming}/prediction_print"
+        mapping_file = "./datasets/gtea/mapping.txt"
 
-    print(f"\nwith most uncertain mask:")
-    # most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
-    result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
-    with open(f"{result_matrices}/with_uncertain_mask_metrices.json", "w") as outfile: 
-        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+        get_segments(f"{prediction_dir}/{naming}.txt", mapping_file)
+
+    # with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
+    #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+
+    # print(f"\nwith most uncertain mask:")
+    # # most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
+    # result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
+    # with open(f"{result_matrices}/with_uncertain_mask_metrices.json", "w") as outfile: 
+    #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
         
-    print(f"\nWith mismatch mask:")
-    result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
-    with open(f"{result_matrices}/with_mismatch_mask_metrices.json", "w") as outfile: 
-        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+    # print(f"\nWith mismatch mask:")
+    # result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
+    # with open(f"{result_matrices}/with_mismatch_mask_metrices.json", "w") as outfile: 
+    #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
-    print(f"\nWith random mask:")
-    result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, random_mask=random_frames)
-    with open(f"{result_matrices}/with_random_mask_metrices.json", "w") as outfile: 
-        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+    # print(f"\nWith random mask:")
+    # result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, random_mask=random_frames)
+    # with open(f"{result_matrices}/with_random_mask_metrices.json", "w") as outfile: 
+    #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+
+    
+    
