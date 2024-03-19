@@ -532,9 +532,12 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
 
         model_path = f"./trained_models/{naming}/release.model"
 
-        acc = []
+        
+        video_most_uncertain_segment_map = {}
         for video_idx in range(len(test_dataset)):
             _, _, _, video = test_dataset[video_idx]
+            probs = 9999999.0
+            most_uncertain_segment_index = None
             for segment_idx in segments[video].keys():
                 video, pred, label, _, _, _ = trainer.test_single_video(
                 video_idx, test_dataset, "decoder-agg", device, model_path, None, None, None, seq_segment_mask=segments[video][segment_idx])
@@ -551,7 +554,12 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
 
                 aggregated_probabilities = get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train)
                 print(f"aggregated: {aggregated_probabilities}")
-                exit()
+                if probs > aggregated_probabilities[f"{video}.txt"]:
+                    probs = aggregated_probabilities[f"{video}.txt"]
+                    most_uncertain_segment_index = segment_idx
+            video_most_uncertain_segment_map[video] = segments[video][most_uncertain_segment_index]
+            print(f"video uncertain segment map: {video_most_uncertain_segment_map}")
+            exit()
             # accs = []
             # 
             # for segment_idx in sequence_segments.keys():
