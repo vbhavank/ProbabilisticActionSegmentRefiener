@@ -558,7 +558,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
                 file_ptr.close()
 
                 aggregated_probabilities = get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train)
-                print(f"segment {segment_idx} aggregated: {aggregated_probabilities}")
+                # print(f"segment {segment_idx} aggregated: {aggregated_probabilities}")
                 if probs < aggregated_probabilities[f"{video}.txt"]:
                     probs = aggregated_probabilities[f"{video}.txt"]
                     most_uncertain_segment_index = segment_idx
@@ -567,7 +567,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
             file_name = os.path.join(prediction_dir, f'{video}.txt')
             if os.path.exists(file_name):
                 os.remove(file_name)
-        print(f"video uncertain segment map: {video_most_uncertain_segment_map}")
+        # print(f"video uncertain segment map: {video_most_uncertain_segment_map}")
                 
     return video_most_uncertain_segment_map            
             # accs = []
