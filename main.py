@@ -474,9 +474,10 @@ class Trainer:
         return result_dict, most_uncertain_segments, mistaken_frames, random_mask
 
 def get_uncertain_segment_PGM(naming):
-    if naming.contains('GTEA'):
+    prediction_dir = f"./result/{naming}/PGM/prediction_print"
+
+    if 'GTEA' in naming:
         label_dir = "./datasets/gtea/labels"
-        prediction_dir = f"./result/{naming}/prediction_print"
         mapping_file = "./datasets/gtea/mapping.txt"
 
         action_mapping, num_action_mapping = get_action_mappings(mapping_file)
@@ -488,7 +489,7 @@ def get_uncertain_segment_PGM(naming):
         transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
 
         aggregated_probabilities, total_probabilities_test = get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurrences)
-        return aggregated_probabilities[f"{naming}.txt"]
+        return aggregated_probabilities
 
 
 def get_segments(pred_file, mapping_file):
@@ -513,20 +514,54 @@ def get_segments(pred_file, mapping_file):
 
 
 
-def get_most_uncertain_segment_PGM(naming):
-   if 'GTEA' in naming:
-        label_dir = "./datasets/gtea/labels"
-        prediction_dir = f"./result/{naming}/prediction_print"
-        mapping_file = "./datasets/gtea/mapping.txt"
+def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, test_dataset, model_path, device):
 
-        for pred_file in os.listdir(prediction_dir):
+    trainer.model.eval()
+    trainer.model.to(device)
+
+    if model_path:
+        trainer.model.load_state_dict(torch.load(model_path))
+
+    if 'GTEA' in naming:
+        label_dir = "./datasets/gtea/labels"
+        prediction_dir = f"./result/{naming}/PGM/prediction_print"
+        mapping_file = "./datasets/gtea/mapping.txt"
+        segments = {}
+        for pred_file in os.listdir(previous_pred_dir):
             sequence_segments = get_segments(f"{prediction_dir}/{pred_file}", mapping_file)
             print(f"segments: {sequence_segments}")
-            accs = []
-            model_path = f"./trained_models/{naming}/release.model"
-            for segment_idx in sequence_segments.keys():
-                result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path, seq_segment_mask=sequence_segments[segment_idx])
+            video_name = pred_file.split('.')[0]
+            segments[video_name] = sequence_segments
 
+        model_path = f"./trained_models/{naming}/release.model"
+
+        acc = []
+        for video_idx in range(len(test_dataset)):
+            _, _, _, video = test_dataset[video_idx]
+            for segment_idx in segments[video].keys():
+                video, pred, label, _, _, _ = trainer.test_single_video(
+                video_idx, test_dataset, "decoder-agg", device, model_path, None, None, None, seq_segment_mask=segments[video][segment_idx])
+
+                if not os.path.exists(prediction_dir):
+                    os.makedirs(prediction_dir)
+                print_pred = trainer.print_preds(pred)
+                file_name = os.path.join(prediction_dir, f'{video}.txt')
+                file_ptr = open(file_name, 'w')
+                file_ptr.write('### Frame level recognition: ###\n')
+                file_ptr.write(print_pred)
+                file_ptr.close()
+
+                aggregated_probabilities = get_uncertain_segment_PGM(naming)
+                print(f"aggregated: {aggregated_probabilities}")
+                exit()
+            # accs = []
+            # 
+            # for segment_idx in sequence_segments.keys():
+            #     video, pred, label, _, _, _ = trainer.test_single_video(
+            #         video_idx, test_dataset, mode, device, model_path, None, None, None, seq_segment_mask=sequence_segments[segment_idx])
+
+            #     aggregated_probabilities = get_uncertain_segment_PGM(naming)
+            #     print(f"aggregated: {aggregated_probabilities}")
 
 
 if __name__ == '__main__':
@@ -616,7 +651,7 @@ if __name__ == '__main__':
         os.makedirs(result_matrices)
     
     
-    get_most_uncertain_segment_PGM(naming)
+    get_most_uncertain_segment_PGM(naming, f"{result_dir}/{naming}/predicted_print", trainer, test_test_dataset, model_path, device='cuda')
  
     # with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
