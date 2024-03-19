@@ -531,7 +531,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
             sequence_segments = get_segments(f"{previous_pred_dir}/{pred_file}", mapping_file)
             video_name = pred_file.split('.')[0]
             segments[video_name] = sequence_segments
-
+        print(segments)
         action_mapping, num_action_mapping = get_action_mappings(mapping_file)
         print(f"actions: {action_mapping}")
         action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
