@@ -574,7 +574,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
             if os.path.exists(file_name):
                 os.remove(file_name)
         # print(f"video uncertain segment map: {video_most_uncertain_segment_map}")
-    print(f"video_segments_uncertainty: {video_segments_uncertainty_map}")
+    # print(f"video_segments_uncertainty: {video_segments_uncertainty_map}")
     return video_most_uncertain_segment_map            
             # accs = []
             # 
