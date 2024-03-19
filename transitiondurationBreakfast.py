@@ -195,11 +195,11 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=int)
     args = parser.parse_args()
 
-    label_dir = '/nfs/hpc/dgx2-6/data/breakfast/groundTruth'
-    mapping_file = '/nfs/hpc/dgx2-6/data/breakfast/mapping.txt'
-    prediction_dir = '/nfs/hpc/dgx2-6/data/breakfast/prediction_print'
-    train_split_file = '/nfs/hpc/dgx2-6/data/breakfast/splits/train.split1.bundle'
-    test_split_file = '/nfs/hpc/dgx2-6/data/breakfast/splits/test.split1.bundle'
+    label_dir = './datasets/breakfast/groundTruth' #'/nfs/hpc/dgx2-6/data/breakfast/groundTruth'
+    mapping_file = './datasets/breakfast/mapping.txt'# '/nfs/hpc/dgx2-6/data/breakfast/mapping.txt'
+    prediction_dir = './result/Breakfast-Trained-S1/prediction_print' # '/nfs/hpc/dgx2-6/data/breakfast/prediction_print'
+    train_split_file = './datasets/breakfast/splits/train.split1.bundle' # '/nfs/hpc/dgx2-6/data/breakfast/splits/train.split1.bundle'
+    test_split_file =  './datasets/breakfast/splits/test.split1.bundle' # '/nfs/hpc/dgx2-6/data/breakfast/splits/test.split1.bundle'
 
     # action_mapping = {}
     # num_action_mapping = {}
