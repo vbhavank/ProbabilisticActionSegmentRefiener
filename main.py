@@ -496,7 +496,7 @@ def get_segments(pred_file, mapping_file):
 
 
 
-def get_most_uncertain_segment_PGM(naming, segment_index):
+def get_most_uncertain_segment_PGM(naming):
    if 'GTEA' in naming:
         label_dir = "./datasets/gtea/labels"
         prediction_dir = f"./result/{naming}/prediction_print"
@@ -594,7 +594,7 @@ if __name__ == '__main__':
         os.makedirs(result_matrices)
     
     
-
+    get_most_uncertain_segment_PGM(naming)
  
     # with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
