@@ -538,6 +538,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
 
     video_most_uncertain_segment_map = {}
 
+    video_segments_uncertainty_map = {}
     with torch.no_grad():
         for video_idx in tqdm(range(len(test_dataset))):
             _, _, _, video = test_dataset[video_idx]
@@ -559,6 +560,11 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
 
                 aggregated_probabilities = get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train)
                 # print(f"segment {segment_idx} aggregated: {aggregated_probabilities}")
+                if f"{video}.txt" not in video_segments_uncertainty_map.keys():
+                    video_segments_uncertainty_map[f"{video}.txt"] = [(segments[video][segment_idx], aggregated_probabilities[f"{video}.txt"])]
+                else:
+                    video_segments_uncertainty_map[f"{video}.txt"].append((segments[video][segment_idx], aggregated_probabilities[f"{video}.txt"]))
+
                 if probs < aggregated_probabilities[f"{video}.txt"]:
                     probs = aggregated_probabilities[f"{video}.txt"]
                     most_uncertain_segment_index = segment_idx
@@ -568,7 +574,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
             if os.path.exists(file_name):
                 os.remove(file_name)
         # print(f"video uncertain segment map: {video_most_uncertain_segment_map}")
-                
+    print(f"video_segments_uncertainty: {video_segments_uncertainty_map}")
     return video_most_uncertain_segment_map            
             # accs = []
             # 
