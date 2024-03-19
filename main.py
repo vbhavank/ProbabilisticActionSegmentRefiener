@@ -473,21 +473,21 @@ class Trainer:
         print(f"\nresult: {result_dict}")
         return result_dict, most_uncertain_segments, mistaken_frames, random_mask
 
-def get_uncertain_segment_PGM(naming):
+def get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train):
     prediction_dir = f"./result/PGM/{naming}/prediction_print"
     aggregated_probabilities = None
     if 'GTEA' in naming:
         label_dir = "./datasets/gtea/labels"
         mapping_file = "./datasets/gtea/mapping.txt"
 
-        action_mapping, num_action_mapping = get_action_mappings(mapping_file)
-            
-        action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
-
+        # action_mapping, num_action_mapping = get_action_mappings(mapping_file)
+        # print(f"actions: {action_mapping}")
+        # action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
+        # print(f"action occurs: {action_occurrences_train}")
         action_occurrences_test = get_test_action_occurences(prediction_dir, action_mapping)
-                    
+        print(f"action_occurs test: {action_occurrences_test}")
         transition_probabilities, average_occurrences = build_transition_matrix(action_occurrences_train)
-
+        print(f"transition probs: {transition_probabilities}\naverage occurs: {average_occurrences}")
         aggregated_probabilities, total_probabilities_test = get_total_probabilities(action_occurrences_test, transition_probabilities, average_occurrences)
     return aggregated_probabilities
 
@@ -532,6 +532,11 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
             video_name = pred_file.split('.')[0]
             segments[video_name] = sequence_segments
 
+        action_mapping, num_action_mapping = get_action_mappings(mapping_file)
+        print(f"actions: {action_mapping}")
+        action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
+        print(f"action occurs train: {action_occurrences_train}")
+
         model_path = f"./trained_models/{naming}/release.model"
 
         acc = []
@@ -550,7 +555,7 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
                 file_ptr.write(print_pred)
                 file_ptr.close()
 
-                aggregated_probabilities = get_uncertain_segment_PGM(naming)
+                aggregated_probabilities = get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train)
                 print(f"aggregated: {aggregated_probabilities}")
                 exit()
             # accs = []
