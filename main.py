@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import json
 from json import JSONEncoder
 from transitionduration import get_action_mappings, get_action_occurences_train, get_test_action_occurences, build_transition_matrix, get_total_probabilities
-
+from transitiondurationBreakfast import get_action_mappings_breakfast, load_splits_breakfast, load_action_sequences_breakfast, build_transition_matrix_breakfast, action_occurrences_from_predictions_breakfast, get_total_probabilities_breakfast
 class NumpyFloatEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.float32) or isinstance(obj, np.float64):
@@ -526,6 +526,17 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
         # print(f"actions: {action_mapping}")
         action_occurrences_train = get_action_occurences_train(label_dir, action_mapping)
         # print(f"action occurs train: {action_occurrences_train}")
+    elif "Breakfast" in naming:
+        label_dir = '/nfs/hpc/dgx2-6/data/breakfast/groundTruth'
+        mapping_file = '/nfs/hpc/dgx2-6/data/breakfast/mapping.txt'
+        train_split_file = '/nfs/hpc/dgx2-6/data/breakfast/splits/train.split1.bundle'
+        test_split_file = '/nfs/hpc/dgx2-6/data/breakfast/splits/test.split1.bundle'
+        train_filenames = load_splits(train_split_file)
+        test_filenames = load_splits(test_split_file)
+        train_filenames = [f  for f in load_splits(train_split_file)]
+        test_filenames = [f  for f in load_splits(test_split_file)]
+        action_mapping, num_action_mapping = get_action_mappings(mapping_file)
+        action_sequences_train = load_action_sequences(train_filenames, label_dir, action_mapping)
     else:
         action_mapping = None
         action_occurrences_train = None
