@@ -534,32 +534,39 @@ def get_most_uncertain_segment_PGM(naming, previous_pred_dir, trainer: Trainer, 
 
         
         video_most_uncertain_segment_map = {}
-        for video_idx in range(len(test_dataset)):
-            _, _, _, video = test_dataset[video_idx]
-            probs = 9999999.0
-            most_uncertain_segment_index = None
-            for segment_idx in segments[video].keys():
-                video, pred, label, _, _, _ = trainer.test_single_video(
-                video_idx, test_dataset, "decoder-agg", device, model_path, None, None, None, seq_segment_mask=segments[video][segment_idx])
 
-                pred = [trainer.event_list[int(i)] for i in pred]
-                if not os.path.exists(prediction_dir):
-                    os.makedirs(prediction_dir)
-                print_pred = trainer.print_preds(pred)
+        with torch.no_grad():
+            for video_idx in range(len(test_dataset)):
+                _, _, _, video = test_dataset[video_idx]
+                probs = 9999999.0
+                most_uncertain_segment_index = None
+                for segment_idx in segments[video].keys():
+                    video, pred, label, _, _, _ = trainer.test_single_video(
+                    video_idx, test_dataset, "decoder-agg", device, model_path, None, None, None, seq_segment_mask=segments[video][segment_idx])
+
+                    pred = [trainer.event_list[int(i)] for i in pred]
+                    if not os.path.exists(prediction_dir):
+                        os.makedirs(prediction_dir)
+                    print_pred = trainer.print_preds(pred)
+                    file_name = os.path.join(prediction_dir, f'{video}.txt')
+                    file_ptr = open(file_name, 'w')
+                    file_ptr.write('### Frame level recognition: ###\n')
+                    file_ptr.write(print_pred)
+                    file_ptr.close()
+
+                    aggregated_probabilities = get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train)
+                    print(f"segment {segment_idx} aggregated: {aggregated_probabilities}")
+                    if probs > aggregated_probabilities[f"{video}.txt"]:
+                        probs = aggregated_probabilities[f"{video}.txt"]
+                        most_uncertain_segment_index = segment_idx
+                video_most_uncertain_segment_map[video] = segments[video][most_uncertain_segment_index]
+
                 file_name = os.path.join(prediction_dir, f'{video}.txt')
-                file_ptr = open(file_name, 'w')
-                file_ptr.write('### Frame level recognition: ###\n')
-                file_ptr.write(print_pred)
-                file_ptr.close()
-
-                aggregated_probabilities = get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train)
-                print(f"aggregated: {aggregated_probabilities}")
-                if probs > aggregated_probabilities[f"{video}.txt"]:
-                    probs = aggregated_probabilities[f"{video}.txt"]
-                    most_uncertain_segment_index = segment_idx
-            video_most_uncertain_segment_map[video] = segments[video][most_uncertain_segment_index]
-            print(f"video uncertain segment map: {video_most_uncertain_segment_map}")
-            exit()
+                if os.path.exists(file_name):
+                    os.remove(file_name)
+                print(f"video uncertain segment map: {video_most_uncertain_segment_map}")
+                exit()
+                
             # accs = []
             # 
             # for segment_idx in sequence_segments.keys():
