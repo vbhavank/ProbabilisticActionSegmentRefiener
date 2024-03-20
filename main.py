@@ -431,7 +431,7 @@ class Trainer:
                 pred = [self.event_list[int(i)] for i in pred]
                 label = [self.event_list[int(i)] for i in label]
                 labels[video] = label
-                print(f"labels: {labels[video]}\nlen: {len(labels[video])}")
+                print(f"for video: {video}\nlabels: {labels[video]}\nlen label: {len(labels[video])}\nlen pred: {len(pred)}")
                 exit()
                 if most_uncertain_segment is not None:
                     most_uncertain_segments_1.append(most_uncertain_segment)
