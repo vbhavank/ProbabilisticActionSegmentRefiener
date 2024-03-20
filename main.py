@@ -642,7 +642,7 @@ def get_most_uncertain_segment_PGM(naming, label_dir_seq, previous_pred_dir, tra
                 os.remove(file_name)
         # print(f"video uncertain segment map: {video_most_uncertain_segment_map}")
     # print(f"video_segments_uncertainty: {video_segments_uncertainty_map}")
-    with open(f'video_segment_map_{naming}.json', 'w') as fp:
+    with open(f'most_uncertain_segment_PGM_map_{naming}.json', 'w') as fp:
         json.dump(video_most_uncertain_segment_map, fp)
     return video_most_uncertain_segment_map            
 
