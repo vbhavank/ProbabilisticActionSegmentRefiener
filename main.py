@@ -428,7 +428,7 @@ class Trainer:
             for video_idx in tqdm(range(len(test_dataset))):
                 _, _, _, video = test_dataset[video_idx]
 
-                video, pred, label, most_uncertain_segment, mistaken_frames_per_video, random_mask_per_video, mistaken_frames_values = self.test_single_video(
+                video, pred, label, most_uncertain_segment, mistaken_frames_per_video, random_mask_per_video, most_uncertain_values = self.test_single_video(
                     video_idx, test_dataset, mode, device, model_path, most_uncertain_segments, mistaken_frames, random_mask, video_most_uncertain_segment_map[video] if video_most_uncertain_segment_map is not None else None)
 
                 pred = [self.event_list[int(i)] for i in pred]
@@ -442,7 +442,7 @@ class Trainer:
 
                 if mistaken_frames is None:
                     mistaken_frames_1.append(mistaken_frames_per_video)
-                    mistaken_frames_1_dict[video] = (mistaken_frames_per_video, mistaken_frames_values)
+                    mistaken_frames_1_dict[video] = (mistaken_frames_per_video.cpu().numpy(), most_uncertain_values.cpu().numpy())
 
                 if random_mask is None:
                     random_mask_1.append(random_mask_per_video)
@@ -479,17 +479,17 @@ class Trainer:
         if most_uncertain_segments is None:
             most_uncertain_segments = most_uncertain_segments_1
             with open(f'most_uncertain_segment_map_{naming}.json', 'w') as fp:
-                json.dump(most_uncertain_segments_1_dict, fp)
+                json.dump(most_uncertain_segments_1_dict, fp, cls=NumpyFloatEncoder)
 
         if mistaken_frames is None:
             mistaken_frames = mistaken_frames_1
             with open(f'mistaken_frames_map_{naming}.json', 'w') as fp:
-                json.dump(mistaken_frames_1_dict, fp)
+                json.dump(mistaken_frames_1_dict, fp, cls=NumpyFloatEncoder)
 
         if random_mask is None:
             random_mask = random_mask_1
             with open(f'random_frames_map_{naming}.json', 'w') as fp:
-                json.dump(random_mask_1_dict, fp)
+                json.dump(random_mask_1_dict, fp, cls=NumpyFloatEncoder)
 
         print(f"\nresult: {result_dict}")
         return result_dict, most_uncertain_segments, mistaken_frames, random_mask
