@@ -351,7 +351,7 @@ class Trainer:
 
             if most_uncertain_frames is None:
                 acc = (output1 == label1).sum() / len(output1)
-                most_uncertain_frames, values =  self.get_k_most_uncertain_frames(top2_scores1, int(len(top2_scores) * acc))
+                most_uncertain_frames, values =  self.get_k_most_uncertain_frames(top2_scores1, int(len(top2_scores) * (1-acc)))
             else:
                 most_uncertain_frames, values = None, None
 
@@ -363,7 +363,7 @@ class Trainer:
             if random_mask is None:
                 acc = (output1 == label1).sum() / len(output1)
                 # print(f"output1 len: {len(output1)}\nacc: {acc}")
-                random_mask = self.get_random_frames(len(output1), int(len(output1) * acc))
+                random_mask = self.get_random_frames(len(output1), int(len(output1) * (1-acc)))
             else:
                 random_mask = None
             # print(f"mistaken frames: {mistaken_frames}\n\nframe ticks: {frame_ticks}")
