@@ -351,8 +351,9 @@ class Trainer:
 
             if most_uncertain_frames is None:
                 acc = (output1 == label1).sum() / len(output1)
-                print(f"length of uncertain: {int(len(top2_scores) * (1-acc))}")
-                most_uncertain_frames, values =  self.get_k_most_uncertain_frames(top2_scores1, int(len(top2_scores) * (1-acc)))
+                print(f"acc: {acc}, len: {top2_scores1}")
+                print(f"length of uncertain: {int(len(top2_scores1) * (1-acc))}")
+                most_uncertain_frames, values =  self.get_k_most_uncertain_frames(top2_scores1, int(len(top2_scores1) * (1-acc)))
                 print(f"most uncertain frames: {most_uncertain_frames}")
             else:
                 most_uncertain_frames, values = None, None
