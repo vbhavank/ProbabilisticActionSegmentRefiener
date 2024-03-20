@@ -351,7 +351,9 @@ class Trainer:
 
             if most_uncertain_frames is None:
                 acc = (output1 == label1).sum() / len(output1)
+                print(f"length of uncertain: {int(len(top2_scores) * (1-acc))}")
                 most_uncertain_frames, values =  self.get_k_most_uncertain_frames(top2_scores1, int(len(top2_scores) * (1-acc)))
+                print(f"most uncertain frames: {most_uncertain_frames}")
             else:
                 most_uncertain_frames, values = None, None
 
@@ -364,6 +366,7 @@ class Trainer:
                 acc = (output1 == label1).sum() / len(output1)
                 # print(f"output1 len: {len(output1)}\nacc: {acc}")
                 random_mask = self.get_random_frames(len(output1), int(len(output1) * (1-acc)))
+                print(f"random mask: {random_mask}")
             else:
                 random_mask = None
             # print(f"mistaken frames: {mistaken_frames}\n\nframe ticks: {frame_ticks}")
@@ -734,10 +737,10 @@ if __name__ == '__main__':
     with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
     
-    print(f"PGM most uncertain mask:")
-    video_most_uncertain_segment_map = get_most_uncertain_segment_PGM(naming, label_dir, f"{result_dir}/{naming}/prediction_print", trainer, test_test_dataset, model_path, device='cuda')
+    # print(f"PGM most uncertain mask:")
+    # video_most_uncertain_segment_map = get_most_uncertain_segment_PGM(naming, label_dir, f"{result_dir}/{naming}/prediction_print", trainer, test_test_dataset, model_path, device='cuda')
  
-    result_dict, most_uncertain_segments, mistaken_frames, random_frames = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/most_uncertain_segment_PGM/{naming}", model_path=model_path, video_most_uncertain_segment_map=video_most_uncertain_segment_map)
+    # result_dict, most_uncertain_segments, mistaken_frames, random_frames = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/most_uncertain_segment_PGM/{naming}", model_path=model_path, video_most_uncertain_segment_map=video_most_uncertain_segment_map)
     # with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
@@ -747,8 +750,8 @@ if __name__ == '__main__':
     # with open(f"{result_matrices}/with_uncertain_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
         
-    print(f"\nWith mismatch mask:")
-    result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/mismatch/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
+    # print(f"\nWith mismatch mask:")
+    # result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/mismatch/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
     # with open(f"{result_matrices}/with_mismatch_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
