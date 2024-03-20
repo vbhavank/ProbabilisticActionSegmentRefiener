@@ -442,7 +442,7 @@ class Trainer:
 
                 if mistaken_frames is None:
                     mistaken_frames_1.append(mistaken_frames_per_video)
-                    mistaken_frames_1_dict[video] = (mistaken_frames_per_video.numpy(), most_uncertain_values.numpy())
+                    mistaken_frames_1_dict[video] = (mistaken_frames_per_video.numpy(), most_uncertain_values)
 
                 if random_mask is None:
                     random_mask_1.append(random_mask_per_video)
