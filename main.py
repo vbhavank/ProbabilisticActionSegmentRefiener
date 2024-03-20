@@ -507,7 +507,6 @@ def get_segments(pred_file, mapping_file):
     with open(pred_file, 'r') as f:
         # print(f"pred_file: {pred_file}")
         sequence = [action_mapping[line.strip()] for line in f if line.strip() in action_mapping.keys()]
-        print(sequence)
         segment_index = 0
         seq = -1
         for i in range(len(sequence)):
