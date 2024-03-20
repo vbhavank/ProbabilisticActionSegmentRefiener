@@ -27,6 +27,12 @@ class NumpyFloatEncoder(JSONEncoder):
         if isinstance(obj, np.float32) or isinstance(obj, np.float64):
             return str(obj)
         return JSONEncoder.default(self, obj)
+    
+class NumpyArrayEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)
 
 class Trainer:
     def __init__(self, encoder_params, decoder_params, diffusion_params, 
@@ -479,17 +485,17 @@ class Trainer:
         if most_uncertain_segments is None:
             most_uncertain_segments = most_uncertain_segments_1
             with open(f'most_uncertain_segment_map_{naming}.json', 'w') as fp:
-                json.dump(most_uncertain_segments_1_dict, fp, cls=NumpyFloatEncoder)
+                json.dump(most_uncertain_segments_1_dict, fp, cls=NumpyArrayEncoder)
 
         if mistaken_frames is None:
             mistaken_frames = mistaken_frames_1
             with open(f'mistaken_frames_map_{naming}.json', 'w') as fp:
-                json.dump(mistaken_frames_1_dict, fp, cls=NumpyFloatEncoder)
+                json.dump(mistaken_frames_1_dict, fp, cls=NumpyArrayEncoder)
 
         if random_mask is None:
             random_mask = random_mask_1
             with open(f'random_frames_map_{naming}.json', 'w') as fp:
-                json.dump(random_mask_1_dict, fp, cls=NumpyFloatEncoder)
+                json.dump(random_mask_1_dict, fp, cls=NumpyArrayEncoder)
 
         print(f"\nresult: {result_dict}")
         return result_dict, most_uncertain_segments, mistaken_frames, random_mask
