@@ -500,13 +500,20 @@ def get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train):
     return aggregated_probabilities
 
 
-def get_segments(pred_file, mapping_file):
+def get_segments(pred_file, mapping_file, naming, trainer: Trainer):
     action_mapping, _ = get_action_mappings(mapping_file)
     sequence_segments = {}
 
     with open(pred_file, 'r') as f:
         # print(f"pred_file: {pred_file}")
         sequence = [action_mapping[line.strip()] for line in f if line.strip() in action_mapping.keys()]
+        if '50salads' in naming:
+            full_len = len(sequence)
+            left_offset = trainer.sample_rate // 2
+            right_offset = (trainer.sample_rate - 1) // 2
+            frame_ticks = np.arange(left_offset, full_len-right_offset, trainer.sample_rate)
+            sequence = sequence[frame_ticks]
+
         segment_index = 0
         seq = -1
         for i in range(len(sequence)):
