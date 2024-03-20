@@ -157,6 +157,12 @@ def get_action_mappings_salads(mapping_file):
             num_action_mapping[int(number)] = action
     return action_mapping, num_action_mapping
 
+def do_log(prob):
+    if prob == 0.0:
+        return 0
+    else:
+        return np.abs(np.log(prob))
+    
 def get_aggregated_probabilities_salads(action_occurrences_test, transition_probabilities, average_durations):
     aggregated_probabilities = defaultdict(float)
 
@@ -167,7 +173,7 @@ def get_aggregated_probabilities_salads(action_occurrences_test, transition_prob
         if f_n == f_n2:
             total_probability = compute_total_probability(action_a, duration_a, action_b, duration_b, transition_probabilities, average_durations)
             total_probabilities_test.append((total_probability, (action_a, action_b), (duration_a, duration_b), f_n2))
-            aggregated_probabilities[f_n2] += total_probability
+            aggregated_probabilities[f_n2] += do_log(total_probability)
     return aggregated_probabilities, total_probabilities_test
 
 if __name__ == '__main__':

@@ -164,6 +164,12 @@ def action_occurrences_from_predictions_breakfast(prediction_dir, action_mapping
             action_occurrences.extend(occurrences)
     return action_occurrences
 
+def do_log(prob):
+    if prob == 0.0:
+        return 0
+    else:
+        return np.abs(np.log(prob))
+    
 def get_total_probabilities_breakfast(action_occurrences_test, transition_probabilities, average_durations):
     aggregated_probabilities = defaultdict(float)
 
@@ -174,7 +180,7 @@ def get_total_probabilities_breakfast(action_occurrences_test, transition_probab
         if f_n == f_n2:
             total_probability = compute_total_probability(action_a, duration_a, action_b, duration_b, transition_probabilities, average_durations)
             total_probabilities_test.append((total_probability, (action_a, action_b), (duration_a, duration_b), f_n2))
-            aggregated_probabilities[f_n2] += total_probability
+            aggregated_probabilities[f_n2] += do_log(total_probability)
     return aggregated_probabilities, total_probabilities_test
 
 def get_action_mappings_breakfast(mapping_file):
