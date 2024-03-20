@@ -566,12 +566,12 @@ def get_most_uncertain_segment_PGM(naming, label_dir_seq, previous_pred_dir, tra
         action_occurrences_train = None
 
     segments = {}
-    for pred_file in os.listdir(previous_pred_dir):
+    for pred_file in os.listdir(label_dir):
         if pred_file.endswith('.txt'):
-            sequence_segments = get_segments(f"{previous_pred_dir}/{pred_file}", mapping_file)
+            sequence_segments = get_segments(f"{label_dir}/{pred_file}", mapping_file)
             video_name = pred_file.split('.')[0]
             segments[video_name] = sequence_segments
-            print(f"for video {video_name} seqs:\n{segments[video_name]}")
+            print(f"\nfor video {video_name} seqs: {segments[video_name]}")
     exit()
     video_most_uncertain_segment_map = {}
 
