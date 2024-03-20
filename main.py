@@ -572,7 +572,7 @@ def get_most_uncertain_segment_PGM(naming, label_dir_seq, previous_pred_dir, tra
             video_name = pred_file.split('.')[0]
             segments[video_name] = sequence_segments
             print(f"for video {video_name} seqs:\n{segments[video_name]}")
-            exit()
+    exit()
     video_most_uncertain_segment_map = {}
 
     video_segments_uncertainty_map = {}
