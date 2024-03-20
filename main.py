@@ -438,11 +438,11 @@ class Trainer:
                 # exit()
                 if most_uncertain_segments is None:
                     most_uncertain_segments_1.append(most_uncertain_segment)
-                    most_uncertain_segments_1_dict[video] = most_uncertain_segment
+                    most_uncertain_segments_1_dict[video] = (most_uncertain_segment.numpy(), most_uncertain_values.numpy())
 
                 if mistaken_frames is None:
                     mistaken_frames_1.append(mistaken_frames_per_video)
-                    mistaken_frames_1_dict[video] = (mistaken_frames_per_video, most_uncertain_values)
+                    mistaken_frames_1_dict[video] = mistaken_frames_per_video
 
                 if random_mask is None:
                     random_mask_1.append(random_mask_per_video)
