@@ -733,16 +733,16 @@ if __name__ == '__main__':
     with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
         json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
     
-    # print(f"PGM most uncertain mask:")
-    # video_most_uncertain_segment_map = get_most_uncertain_segment_PGM(naming, label_dir, f"{result_dir}/{naming}/prediction_print", trainer, test_test_dataset, model_path, device='cuda')
+    print(f"PGM most uncertain mask:")
+    video_most_uncertain_segment_map = get_most_uncertain_segment_PGM(naming, label_dir, f"{result_dir}/{naming}/prediction_print", trainer, test_test_dataset, model_path, device='cuda')
  
     # result_dict, most_uncertain_segments, mistaken_frames, random_frames = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/most_uncertain_segment_PGM/{naming}", model_path=model_path, video_most_uncertain_segment_map=video_most_uncertain_segment_map)
     # with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
-    print(f"\nwith most uncertain mask:")
-    # most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
-    result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/most_uncertain/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
+    # print(f"\nwith most uncertain mask:")
+    # # most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
+    # result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/most_uncertain/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
     # with open(f"{result_matrices}/with_uncertain_mask_metrices.json", "w") as outfile: 
     #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
         
