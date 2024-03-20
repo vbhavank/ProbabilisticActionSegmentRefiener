@@ -581,7 +581,6 @@ def get_most_uncertain_segment_PGM(naming, label_dir_seq, previous_pred_dir, tra
     with torch.no_grad():
         for video_idx in tqdm(range(len(test_dataset))):
             _, _, _, video = test_dataset[video_idx]
-            print(f"video: {video}")
             probs = -1
             most_uncertain_segment_index = None
             for segment_idx in segments[video].keys():
@@ -600,11 +599,11 @@ def get_most_uncertain_segment_PGM(naming, label_dir_seq, previous_pred_dir, tra
 
                 aggregated_probabilities = get_uncertain_segment_PGM(naming, action_mapping, action_occurrences_train)
                 # print(f"segment {segment_idx} aggregated: {aggregated_probabilities}")
-                if f"{video}.txt" not in video_segments_uncertainty_map.keys():
-                    video_segments_uncertainty_map[f"{video}.txt"] = [(segments[video][segment_idx][0], segments[video][segment_idx][-1], aggregated_probabilities[f"{video}.txt"])]
-                else:
-                    print(f"video segment: {segments[video][segment_idx]}")
-                    video_segments_uncertainty_map[f"{video}.txt"].append((segments[video][segment_idx][0], segments[video][segment_idx][-1], aggregated_probabilities[f"{video}.txt"]))
+                # if f"{video}.txt" not in video_segments_uncertainty_map.keys():
+                #     video_segments_uncertainty_map[f"{video}.txt"] = [(segments[video][segment_idx][0], segments[video][segment_idx][-1], aggregated_probabilities[f"{video}.txt"])]
+                # else:
+
+                #     video_segments_uncertainty_map[f"{video}.txt"].append((segments[video][segment_idx][0], segments[video][segment_idx][-1], aggregated_probabilities[f"{video}.txt"]))
 
                 if probs < aggregated_probabilities[f"{video}.txt"]:
                     probs = aggregated_probabilities[f"{video}.txt"]
@@ -616,8 +615,8 @@ def get_most_uncertain_segment_PGM(naming, label_dir_seq, previous_pred_dir, tra
                 os.remove(file_name)
         # print(f"video uncertain segment map: {video_most_uncertain_segment_map}")
     # print(f"video_segments_uncertainty: {video_segments_uncertainty_map}")
-    with open(f'video_segment_map_{naming}.json', 'w') as fp:
-        json.dump(video_most_uncertain_segment_map, fp)
+    # with open(f'video_segment_map_{naming}.json', 'w') as fp:
+    #     json.dump(video_most_uncertain_segment_map, fp)
     return video_most_uncertain_segment_map            
             # accs = []
             # 
