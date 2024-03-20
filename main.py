@@ -419,7 +419,7 @@ class Trainer:
 
         if random_mask is None:
             random_mask_1 = []
-
+        labels = {}
         with torch.no_grad():
 
             for video_idx in tqdm(range(len(test_dataset))):
@@ -429,6 +429,9 @@ class Trainer:
                     video_idx, test_dataset, mode, device, model_path, most_uncertain_segments, mistaken_frames, random_mask, video_most_uncertain_segment_map[video] if video_most_uncertain_segment_map is not None else None)
 
                 pred = [self.event_list[int(i)] for i in pred]
+                label = [self.event_list[int(i)] for i in label]
+                labels[video] = label
+                print(f"labels: {labels}\nlen: {len(labels)}")
 
                 if most_uncertain_segment is not None:
                     most_uncertain_segments_1.append(most_uncertain_segment)
