@@ -159,7 +159,7 @@ def get_action_mappings_salads(mapping_file):
 
 def do_log(prob):
     if prob == 0.0:
-        return 0
+        return 999.0
     else:
         return np.abs(np.log(prob))
     
