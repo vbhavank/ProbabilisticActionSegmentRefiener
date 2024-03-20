@@ -244,7 +244,7 @@ class Trainer:
     
     def get_k_most_uncertain_frames(self, top2_score, k):
         values, frames = torch.topk(top2_score, k=k, largest=False)
-        return frames
+        return frames, values
     
     def get_random_frames(self, total_frames, k):
         all_frames = np.arange(total_frames, dtype=np.int32)
@@ -322,7 +322,7 @@ class Trainer:
 
             output = torch.mean(torch.cat(output, 0), dim=0)  # torch.Size([sample_rate, C, T])
             top2_scores = torch.topk(output, k=2, dim=0)[0]
-            top2_scores1= top2_scores[0, :] - top2_scores[1, :]
+            top2_scores1 = top2_scores[0, :] - top2_scores[1, :]
             output = output.numpy()
 
             if self.postprocess['type'] == 'median': # before restoring full sequence
@@ -345,9 +345,9 @@ class Trainer:
 
             if most_uncertain_frames is None:
                 acc = (output1 == label1).sum() / len(output1)
-                most_uncertain_frames =  self.get_k_most_uncertain_frames(top2_scores1, int(len(top2_scores) * acc))
+                most_uncertain_frames, values =  self.get_k_most_uncertain_frames(top2_scores1, int(len(top2_scores) * acc))
             else:
-                most_uncertain_frames = None
+                most_uncertain_frames, values = None, None
 
             if mistaken_frames is None:
                 mistaken_frames = self.mistaken_segments(output1, label1)
@@ -386,7 +386,7 @@ class Trainer:
             
             
             assert(output.shape == label.shape)
-            return video, output, label, most_uncertain_frames, mistaken_frames, random_mask
+            return video, output, label, most_uncertain_frames, mistaken_frames, random_mask, values
 
     def print_preds(self, pred):
         curr_action = -1
@@ -428,7 +428,7 @@ class Trainer:
             for video_idx in tqdm(range(len(test_dataset))):
                 _, _, _, video = test_dataset[video_idx]
 
-                video, pred, label, most_uncertain_segment, mistaken_frames_per_video, random_mask_per_video = self.test_single_video(
+                video, pred, label, most_uncertain_segment, mistaken_frames_per_video, random_mask_per_video, mistaken_frames_values = self.test_single_video(
                     video_idx, test_dataset, mode, device, model_path, most_uncertain_segments, mistaken_frames, random_mask, video_most_uncertain_segment_map[video] if video_most_uncertain_segment_map is not None else None)
 
                 pred = [self.event_list[int(i)] for i in pred]
@@ -442,7 +442,7 @@ class Trainer:
 
                 if mistaken_frames is None:
                     mistaken_frames_1.append(mistaken_frames_per_video)
-                    mistaken_frames_1_dict[video] = mistaken_frames_per_video
+                    mistaken_frames_1_dict[video] = (mistaken_frames_per_video, mistaken_frames_values)
 
                 if random_mask is None:
                     random_mask_1.append(random_mask_per_video)
@@ -606,7 +606,7 @@ def get_most_uncertain_segment_PGM(naming, label_dir_seq, previous_pred_dir, tra
             probs = -1
             most_uncertain_segment_index = None
             for segment_idx in segments[video].keys():
-                video, pred, label, _, _, _ = trainer.test_single_video(
+                video, pred, label, _, _, _, _ = trainer.test_single_video(
                 video_idx, test_dataset, "decoder-agg", device, model_path, None, None, None, seq_segment_mask=segments[video][segment_idx])
 
                 pred = [trainer.event_list[int(i)] for i in pred]
