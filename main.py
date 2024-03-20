@@ -512,7 +512,8 @@ def get_segments(pred_file, mapping_file, naming, trainer: Trainer):
             left_offset = trainer.sample_rate // 2
             right_offset = (trainer.sample_rate - 1) // 2
             frame_ticks = np.arange(left_offset, full_len-right_offset, trainer.sample_rate)
-            sequence = sequence[frame_ticks]
+            
+            sequence = [sequence[i] for i in frame_ticks]
 
         segment_index = 0
         seq = -1
