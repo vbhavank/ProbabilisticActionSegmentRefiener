@@ -4,14 +4,14 @@ The following repo contains code for Action Segmentation Regulator that uses Pro
 We followed the [Diffusion Action Segmentation](https://arxiv.org/abs/2303.17959) (ICCV 2023) paper and used their code at [DiffAct](https://finspire13.github.io/DiffAct-Project-Page/) as a base for our work.
 
 ## Environment
-Python 3.9+
-Pytorch Latest version CUDA 11.3+
-networkx
-numpy
-scipy
-matplotlib
-tqdm
-json
+Python 3.9+,
+Pytorch Latest version CUDA 11.3+,
+networkx,
+numpy,
+scipy,
+matplotlib,
+tqdm,
+json,
 
 ## Data
 
