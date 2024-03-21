@@ -1,2 +1,58 @@
 # ProbabilisticActionSegmentRefiener
-The following repo contains code for Action Segmentation Regulator that uses Probabilistic models to detect erroneous segmentstions
+The following repo contains code for Action Segmentation Regulator that uses Probabilistic models to detect erroneous action segmentstions and OOD data instances
+
+We followed the [Diffusion Action Segmentation](https://arxiv.org/abs/2303.17959) (ICCV 2023) paper and used their code at [DiffAct](https://finspire13.github.io/DiffAct-Project-Page/) as a base for our work.
+
+## Environment
+Python 3.9+
+Pytorch Latest version CUDA 11.3+
+networkx
+numpy
+scipy
+matplotlib
+tqdm
+json
+
+## Data
+
+* Download features of 50salads, GTEA and Breakfast provided by [MS-TCN]() and [ASFormer](https://github.com/ChinaYi/ASFormer): [[Link1]](https://mega.nz/#!O6wXlSTS!wcEoDT4Ctq5HRq_hV-aWeVF1_JB3cacQBQqOLjCIbc8) [[Link2]](https://zenodo.org/record/3625992#.Xiv9jGhKhPY)
+* Unzip the data, rename it to "datasets" and put into the current directory
+```
+ProbabilisticActionSegmentRefiner/
+├── datasets
+│   ├── 50salads
+│   │   ├── features
+│   │   ├── groundTruth
+│   │   ├── mapping.txt
+│   │   └── splits
+│   ├── breakfast
+│   │   ├── features
+│   │   ├── groundTruth
+│   │   ├── mapping.txt
+│   │   └── splits
+│   └── gtea
+│       ├── features
+│       ├── groundTruth
+│       ├── mapping.txt
+│       └── splits
+├── main.py
+├── model.py
+└── ...
+```
+
+## Run the masked inferences
+
+* Generate config files by `python default_configs.py`
+* Run `python main.py --config configs/some_config.json --device gpu_id --is_train False`
+* If you want to train the model again, set `--is_train True`
+* Trained models and logs will be saved in the `result` folder
+
+## OOD experiment
+* Run `python ablation/transitiondurationAbalation.py` for GTEA dataset
+* Run `python ablation/transitiondurationBreakfastAblation.py` for Breakfast dataset
+* Run `python ablation/transitiondurationSaladAblation.py` for 50salads dataset
+
+## Trained Models 
+
+* We provide some trained models in the `trained_models` folder to use for inference
+
