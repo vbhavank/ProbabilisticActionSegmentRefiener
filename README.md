@@ -43,8 +43,8 @@ ProbabilisticActionSegmentRefiner/
 ## Run the masked inferences
 
 * Generate config files by `python default_configs.py`
-* Run `python main.py --config configs/some_config.json --device gpu_id --is_train False`
-* If you want to train the model again, set `--is_train True`
+* Run `python main.py --config configs/some_config.json --device gpu_id --is_train 0`
+* If you want to train the model again, set `--is_train 1`
 * Trained models and logs will be saved in the `result` folder
 
 ## OOD experiment
@@ -55,7 +55,7 @@ ProbabilisticActionSegmentRefiner/
 ## Model Training
 * To train a model from scratch, please use the corresponding JSON for your dataset and split. Here, we give an example of training on GTEA Split 1. In the end, we use the best model for our inference.
 ```
-python main.py --config configs/GTEA-Trained-S1.json 
+python main.py --config configs/GTEA-Trained-S1.json --is_train 1
 ```
 * We also provide some trained models in the `trained_models` folder to use for inference
 
