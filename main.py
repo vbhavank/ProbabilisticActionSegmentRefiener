@@ -654,6 +654,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--config', type=str)
     parser.add_argument('--device', type=int)
+    parser.add_argument('--is_train', type=bool)
     args = parser.parse_args()
 
     all_params = load_config_file(args.config)
