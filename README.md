@@ -48,9 +48,9 @@ ProbabilisticActionSegmentRefiner/
 * Trained models and logs will be saved in the `result` folder
 
 ## OOD experiment
-* Run `python ablation/transitiondurationAbalation.py` for GTEA dataset
-* Run `python ablation/transitiondurationBreakfastAblation.py` for Breakfast dataset
-* Run `python ablation/transitiondurationSaladAblation.py` for 50salads dataset
+* Run `python transitiondurationAbalation.py` for GTEA dataset
+* Run `python transitiondurationBreakfastAblation.py` for Breakfast dataset
+* Run `python transitiondurationSaladAblation.py` for 50salads dataset
 
 ## Model Training
 * To train a model from scratch, please use the corresponding JSON for your dataset and split. Here, we give an example of training on GTEA Split 1. In the end, we use the best model for our inference.
