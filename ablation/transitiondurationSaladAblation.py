@@ -8,7 +8,7 @@ import math
 import pdb
 import sys
 import argparse
-from transitiondurationBreakfast import action_occurrences_from_predictions
+from transitiondurationBreakfast import action_occurrences_from_predictions_breakfast
 import re
         
 def poisson_confidence_interval(k, alpha=0.05):
@@ -209,7 +209,7 @@ def load_breakfast_dataset():
             action_mapping[action] = int(number)
             num_action_mapping[int(number)] = action
     prediction_dir = '/nfs/hpc/dgx2-6/data/result1/50salads-Trained-S1-Tested-BF-S1/release'
-    action_occurrences_test = action_occurrences_from_predictions(prediction_dir, action_mapping)
+    action_occurrences_test = action_occurrences_from_predictions_breakfast(prediction_dir, action_mapping)
     return action_occurrences_test
 
 def do_log(prob):

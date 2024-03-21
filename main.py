@@ -664,6 +664,8 @@ if __name__ == '__main__':
 
     if args.device != -1:
         os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
+
+    is_train = bool(args.is_train)
     
     feature_dir = os.path.join(root_data_dir, dataset_name, 'features')
     label_dir = os.path.join(root_data_dir, dataset_name, 'groundTruth')
@@ -673,23 +675,25 @@ if __name__ == '__main__':
     event_list = [i[1] for i in event_list]
     num_classes = len(event_list)
 
-    train_video_list = np.loadtxt(os.path.join(
-        root_data_dir, dataset_name, 'splits', f'train.split{split_id}.bundle'), dtype=str)
+    if is_train:
+        train_video_list = np.loadtxt(os.path.join(
+            root_data_dir, dataset_name, 'splits', f'train.split{split_id}.bundle'), dtype=str)
     test_video_list = np.loadtxt(os.path.join(
         root_data_dir, dataset_name, 'splits', f'test.split{split_id}.bundle'), dtype=str)
 
     train_video_list = [i.split('.')[0] for i in train_video_list]
     test_video_list = [i.split('.')[0] for i in test_video_list]
 
-    # train_data_dict = get_data_dict(
-    #     feature_dir=feature_dir, 
-    #     label_dir=label_dir, 
-    #     video_list=train_video_list, 
-    #     event_list=event_list, 
-    #     sample_rate=sample_rate, 
-    #     temporal_aug=temporal_aug,
-    #     boundary_smooth=boundary_smooth
-    # )
+    if is_train:
+        train_data_dict = get_data_dict(
+            feature_dir=feature_dir, 
+            label_dir=label_dir, 
+            video_list=train_video_list, 
+            event_list=event_list, 
+            sample_rate=sample_rate, 
+            temporal_aug=temporal_aug,
+            boundary_smooth=boundary_smooth
+        )
 
     test_data_dict = get_data_dict(
         feature_dir=feature_dir, 
@@ -701,8 +705,9 @@ if __name__ == '__main__':
         boundary_smooth=boundary_smooth
     )
     
-    # train_train_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='train')
-    # train_test_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='test')
+    if is_train:
+        train_train_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='train')
+        train_test_dataset = VideoFeatureDataset(train_data_dict, num_classes, mode='test')
     test_test_dataset = VideoFeatureDataset(test_data_dict, num_classes, mode='test')
 
     trainer = Trainer(dict(encoder_params), dict(decoder_params), dict(diffusion_params), 
@@ -713,19 +718,19 @@ if __name__ == '__main__':
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
 
-    # trainer.train(train_train_dataset, train_test_dataset, test_test_dataset, 
-    #     loss_weights, class_weighting, soft_label,
-    #     num_epochs, batch_size, learning_rate, weight_decay,
-    #     label_dir=label_dir, result_dir=os.path.join(result_dir, naming), 
-    #     log_freq=log_freq, log_train_results=log_train_results
-    # )
+    if is_train:
+        trainer.train(train_train_dataset, train_test_dataset, test_test_dataset, 
+            loss_weights, class_weighting, soft_label,
+            num_epochs, batch_size, learning_rate, weight_decay,
+            label_dir=label_dir, result_dir=os.path.join(result_dir, naming), 
+            log_freq=log_freq, log_train_results=log_train_results
+        )
     print(f"Without any mask:")
     model_path = f"./trained_models/{naming}/release.model"
     result_dict, most_uncertain_segments, mistaken_frames, random_frames = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/{naming}", model_path=model_path)
     uncertain_segments_result = f"./uncertain_frames/{naming}"
     if not os.path.exists(uncertain_segments_result):
         os.makedirs(uncertain_segments_result)
-    # np.save(f"{uncertain_segments_result}/most_uncertain_frames.npy", most_uncertain_segments)
 
     result_matrices = f"./result_matrices/{naming}"
     if not os.path.exists(result_matrices):
@@ -737,24 +742,24 @@ if __name__ == '__main__':
     video_most_uncertain_segment_map = get_most_uncertain_segment_PGM(naming, label_dir, f"{result_dir}/{naming}/prediction_print", trainer, test_test_dataset, model_path, device='cuda')
  
     result_dict, most_uncertain_segments, mistaken_frames, random_frames = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/most_uncertain_segment_PGM/{naming}", model_path=model_path, video_most_uncertain_segment_map=video_most_uncertain_segment_map)
-    # with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
-    #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+    with open(f"{result_matrices}/without_mask_metrices.json", "w") as outfile: 
+        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
-    # print(f"\nwith most uncertain mask:")
-    # # most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
-    # result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/most_uncertain/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
-    # with open(f"{result_matrices}/with_uncertain_mask_metrices.json", "w") as outfile: 
-    #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+    print(f"\nwith most uncertain mask:")
+    # most_uncertain_segments = np.load(f"{uncertain_segments_result}/most_uncertain_frames.npy")
+    result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/most_uncertain/{naming}", model_path=model_path, most_uncertain_segments=most_uncertain_segments)
+    with open(f"{result_matrices}/with_uncertain_mask_metrices.json", "w") as outfile: 
+        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
         
-    # print(f"\nWith mismatch mask:")
-    # result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/mismatch/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
-    # with open(f"{result_matrices}/with_mismatch_mask_metrices.json", "w") as outfile: 
-    #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+    print(f"\nWith mismatch mask:")
+    result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/mismatch/{naming}", model_path=model_path, most_uncertain_segments=None, mistaken_frames=mistaken_frames)
+    with open(f"{result_matrices}/with_mismatch_mask_metrices.json", "w") as outfile: 
+        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
-    # print(f"\nWith random mask:")
-    # result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/random/{naming}", model_path=model_path, random_mask=random_frames)
-    # with open(f"{result_matrices}/with_random_mask_metrices.json", "w") as outfile: 
-    #     json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
+    print(f"\nWith random mask:")
+    result_dict, _, _, _ = trainer.test(test_test_dataset, mode="decoder-agg", device='cuda', label_dir=label_dir, result_dir=f"{result_dir}/random/{naming}", model_path=model_path, random_mask=random_frames)
+    with open(f"{result_matrices}/with_random_mask_metrices.json", "w") as outfile: 
+        json.dump(result_dict, outfile, cls=NumpyFloatEncoder)
 
     
     

@@ -166,7 +166,7 @@ def action_occurrences_from_predictions_breakfast(prediction_dir, action_mapping
 
 def do_log(prob):
     if prob == 0.0:
-        return 9999999.0
+        return 99999.0
     else:
         return np.abs(np.log(prob))
     
@@ -208,14 +208,6 @@ if __name__ == '__main__':
     train_split_file = './datasets/breakfast/splits/train.split1.bundle' # '/nfs/hpc/dgx2-6/data/breakfast/splits/train.split1.bundle'
     test_split_file =  './datasets/breakfast/splits/test.split1.bundle' # '/nfs/hpc/dgx2-6/data/breakfast/splits/test.split1.bundle'
 
-    # action_mapping = {}
-    # num_action_mapping = {}
-
-    # with open(mapping_file, 'r') as f:
-    #     for line in f:
-    #         number, action = line.strip().split()
-    #         action_mapping[action] = int(number)
-    #         num_action_mapping[int(number)] = action
 
     action_mapping, num_action_mapping = get_action_mappings_breakfast(mapping_file)
             
