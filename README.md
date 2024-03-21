@@ -43,8 +43,8 @@ ProbabilisticActionSegmentRefiner/
 ## Run the masked inferences
 
 * Generate config files by `python default_configs.py`
-* Run `python main.py --config configs/some_config.json --device gpu_id --is_train False`
-* If you want to train the model again, set `--is_train True`
+* Run `python main.py --config configs/some_config.json --device gpu_id --is_train 0`
+* If you want to train the model again, set `--is_train 1`
 * Trained models and logs will be saved in the `result` folder
 
 ## OOD experiment

@@ -168,7 +168,7 @@ class Trainer:
                 # for mode in ['encoder', 'decoder-noagg', 'decoder-agg']:
                 for mode in ['decoder-agg']: # Default: decoder-agg. The results of decoder-noagg are similar
 
-                    test_result_dict = self.test(
+                    test_result_dict, _, _, _ = self.test(
                         test_test_dataset, mode, device, label_dir,
                         result_dir=result_dir, model_path=None)
 
@@ -654,7 +654,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--config', type=str)
     parser.add_argument('--device', type=int)
-    parser.add_argument('--is_train', type=str)
+    parser.add_argument('--is_train', type=int)
     args = parser.parse_args()
 
     all_params = load_config_file(args.config)
