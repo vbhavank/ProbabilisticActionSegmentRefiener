@@ -679,10 +679,12 @@ if __name__ == '__main__':
     if is_train:
         train_video_list = np.loadtxt(os.path.join(
             root_data_dir, dataset_name, 'splits', f'train.split{split_id}.bundle'), dtype=str)
+        train_video_list = [i.split('.')[0] for i in train_video_list]
+
     test_video_list = np.loadtxt(os.path.join(
         root_data_dir, dataset_name, 'splits', f'test.split{split_id}.bundle'), dtype=str)
 
-    train_video_list = [i.split('.')[0] for i in train_video_list]
+    
     test_video_list = [i.split('.')[0] for i in test_video_list]
 
     if is_train:
@@ -720,6 +722,7 @@ if __name__ == '__main__':
         os.makedirs(result_dir)
 
     if is_train:
+        print(f"Training Begins for dataset {naming}")
         trainer.train(train_train_dataset, train_test_dataset, test_test_dataset, 
             loss_weights, class_weighting, soft_label,
             num_epochs, batch_size, learning_rate, weight_decay,
